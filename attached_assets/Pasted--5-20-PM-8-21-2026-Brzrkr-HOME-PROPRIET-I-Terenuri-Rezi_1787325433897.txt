@@ -1,0 +1,130 @@
+[5:20 PM, 8/21/2026] Brzrkr: HOME
+│
+├── PROPRIETĂȚI
+│   ├── Terenuri
+│   ├── Rezidențial
+│   ├── Comercial
+│   └── Logistic / Industrial
+│
+├── SERVICII
+│   ├── Tranzacții imobiliare
+│   ├── Achiziții terenuri
+│   ├── Structurare proiecte
+│   └── Dezvoltare imobiliară
+│
+├── DEZVOLTĂRI
+│   ├── Rezidențial
+│   ├── Comercial
+│   ├── Centre comerciale
+│   └── Logistic
+│
+├── PROIECTE
+│   ├── În dezvoltare
+│   ├── Finalizate
+│   └── Oportunități
+│
+├── INVESTIȚII / PARTENERIATE
+│
+├── DESPRE NOI
+│
+└── CONTACT
+[5:20 PM, 8/21/2026] Brzrkr: Descriere
+
+Suntem o companie activă în sectorul imobiliar, cu focus pe identificarea, achiziția, tranzacționarea și dezvoltarea de terenuri și proprietăți. Lucrăm atât cu proprietari și investitori, cât și cu parteneri interesați de dezvoltarea unor proiecte rezidențiale, comerciale și logistice.
+
+Homepage trebuie să trimită către:
+
+* Proprietăți
+* Servicii
+* Proiecte
+* Achiziții terenuri
+* Investiții / Parteneriate
+* Contact
+
+⸻
+
+3. PROPRIETĂȚI
+
+Scop
+
+Secțiunea prezintă proprietățile disponibile pentru vânzare, achiziție sau dezvoltare.
+
+Categorii
+
+Terenuri
+
+Terenuri disponibile pentru vânzare sau terenuri identificate ca având potențial pentru dezvoltare.
+
+Rezidențial
+
+Apartamente, case, vile și alte proprietăți rezidențiale disponibile pentru tranzacționare.
+
+Comercial
+
+Spații comerciale, clădiri, showroom-uri și alte proprietăți destinate activităților comerciale.
+
+Logistic / Industrial
+
+Hale, depozite, spații industriale și terenuri potrivite pentru dezvoltări logistice.
+
+Funcționalitate pentru IT
+
+Ar fi util ca această secțiune să permită:
+
+* filtrare după categorie;
+* localitate / zonă;
+* suprafață;
+* preț;
+* status;
+* tip proprietate.
+
+⸻
+
+4. SERVICII
+
+Aici explicăm ce facem noi, independent de proprietățile listate.
+
+⸻
+
+4.1 Tranzacții imobiliare
+
+Scop
+
+Facilităm tranzacții pentru terenuri și proprietăți rezidențiale, comerciale și logistice.
+
+Text
+
+Identificăm cumpărători și oportunități pentru proprietarii care doresc să vândă și oferim acces la proprietăți relevante pentru cumpărători și investitori. Analizăm caracteristicile proprietății, contextul pieței și potențialul acesteia pentru a facilita o tranzacție eficientă.
+
+CTA
+
+Vezi proprietățile disponibile
+
+⸻
+
+5. ACHIZIȚII TERENURI
+
+Scop
+
+Secțiunea este destinată proprietarilor care dețin terenuri și vor să le vândă sau să găsească un partener pentru dezvoltare.
+
+Text
+
+Căutăm terenuri cu potențial pentru dezvoltări rezidențiale, comerciale și logistice. Analizăm locația, suprafața, accesul, infrastructura, caracteristicile urbanistice și potențialul de dezvoltare al terenului.
+
+Suntem interesați atât de terenuri disponibile pentru achiziție, cât și de oportunități care pot fi dezvoltate împreună cu proprietarii sau partenerii locali.
+
+CTA
+
+Propune un teren
+[5:20 PM, 8/21/2026] Brzrkr: 6. STRUCTURARE PROIECTE
+
+Aici aș păstra ideea de „montaj imobiliar”, dar pentru site aș utiliza mai degrabă Structurare proiecte.
+
+Scop
+
+Transformăm o oportunitate imobiliară într-un proiect care poate fi dezvoltat.
+
+Text
+
+Analizăm oportunități imobiliare și contribuim la structurarea acestora într-un proiect viabil. Evaluăm terenul, locația, potențialul de dezvoltare și oportunitatea comercială, apoi identificăm structura potrivită pentru dezvoltarea și valorificarea proiectului.
