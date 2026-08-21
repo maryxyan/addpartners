@@ -100,8 +100,8 @@ function Home() {
       <header className="header">
         <div className="container-wide header-inner">
           <a href="#acasa" className="brand" onClick={() => setMobileOpen(false)} data-testid="link-brand">
-            <span className="brand-mark"><span>TI</span></span>
-            <span className="brand-name">Terenuri<br /><small>Imobiliare</small></span>
+            <span className="brand-mark"><span>AP</span></span>
+            <span className="brand-name">ADD<br /><small>Partners</small></span>
           </a>
           <nav className="nav-links" aria-label="Navigație principală">
             {navItems.map(([label, id]) => (
@@ -138,7 +138,7 @@ function Home() {
         <section className="hero" id="acasa">
           <div className="container-wide">
             <div className="hero-copy">
-              <div className="eyebrow reveal">Terenuri Imobiliare · București / România</div>
+              <div className="eyebrow reveal">ADD Partners · București / România</div>
               <h1 className="display reveal reveal-delay-1">Vedem ce<br />încă <em>nu se vede.</em></h1>
               <p className="hero-description reveal reveal-delay-2">
                 Identificăm, structurăm și dezvoltăm locuri cu potențial real.
@@ -333,7 +333,7 @@ function Home() {
               <h2 className="display">Partenerul<br /><em>de lângă hartă.</em></h2>
             </div>
             <p>
-              Terenuri Imobiliare este o echipă boutique de real-estate cu rădăcini locale și gândire de investitor.
+              ADD Partners este o echipă boutique de real-estate cu rădăcini locale și gândire de investitor.
               Nu alergăm după volum. Ne concentrăm pe active cu sens, relații care durează și proiecte care îmbunătățesc locul în care apar.
               <br /><br />Ne place să fim primii care pun întrebarea potrivită.
             </p>
@@ -345,14 +345,14 @@ function Home() {
         <div className="container-wide">
           <div className="footer-top">
             <div>
-              <a href="#acasa" className="brand" data-testid="link-footer-brand"><span className="brand-mark"><span>TI</span></span><span className="brand-name">Terenuri<br /><small>Imobiliare</small></span></a>
+              <a href="#acasa" className="brand" data-testid="link-footer-brand"><span className="brand-mark"><span>AP</span></span><span className="brand-name">ADD<br /><small>Partners</small></span></a>
               <p className="footer-blurb">Identificăm potențialul. Îl transformăm în locuri care contează.</p>
             </div>
             <div><h3>Explorați</h3><a href="#proprietati" data-testid="link-footer-properties">Proprietăți</a><a href="#servicii" data-testid="link-footer-services">Servicii</a><a href="#proiecte" data-testid="link-footer-projects">Proiecte</a></div>
             <div><h3>Conectare</h3><a href="mailto:salut@terenuri-imobiliare.ro" data-testid="link-footer-email">salut@terenuri-imobiliare.ro</a><a href="tel:+40213140000" data-testid="link-footer-phone">+40 21 314 00 00</a><a href="#contact" onClick={() => openModal('contact')} data-testid="link-footer-form">Formular contact</a></div>
             <div><h3>Ne găsiți</h3><p>Str. Plantelor 27<br />București, România<br /><br />Luni — Vineri<br />09:00 — 18:00</p></div>
           </div>
-          <div className="footer-bottom"><span>© 2024 Terenuri Imobiliare</span><span>Claritate înainte de angajament</span></div>
+          <div className="footer-bottom"><span>© 2024 ADD Partners</span><span>Claritate înainte de angajament</span></div>
         </div>
       </footer>
 
