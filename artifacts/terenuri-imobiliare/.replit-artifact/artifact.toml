@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Terenuri Imobiliare"
+description = "A premium Romanian real-estate platform for discovering land, residential, commercial, and logistics properties, exploring development opportunities, and connecting owners with investors."
+version = "1.0.0"
+id = "artifacts/terenuri-imobiliare"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18251
+
+[services.development]
+run = "pnpm --filter @workspace/terenuri-imobiliare run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/terenuri-imobiliare", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/terenuri-imobiliare/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18251"
+BASE_PATH = "/"
