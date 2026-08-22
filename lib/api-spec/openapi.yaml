@@ -91,6 +91,44 @@ paths:
                 $ref: "#/components/schemas/Property"
         "404":
           description: Property not found
+    patch:
+      operationId: updateProperty
+      tags: [properties]
+      summary: Update a property listing
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyInput"
+      responses:
+        "200":
+          description: Updated property
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+        "404":
+          description: Property not found
+    delete:
+      operationId: deleteProperty
+      tags: [properties]
+      summary: Delete a property listing
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Property deleted
+        "404":
+          description: Property not found
   /inquiries:
     post:
       operationId: createInquiry

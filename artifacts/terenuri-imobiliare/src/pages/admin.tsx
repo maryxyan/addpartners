@@ -1,0 +1,197 @@
+import { useState, type FormEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Check, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
+import {
+  type Property,
+  type PropertyInput,
+  getListPropertiesQueryKey,
+  useCreateProperty,
+  useDeleteProperty,
+  useListProperties,
+  useUpdateProperty,
+} from '@workspace/api-client-react';
+import { Link } from 'wouter';
+
+const emptyForm: PropertyInput = {
+  slug: '',
+  title: '',
+  location: '',
+  size: '',
+  category: 'Terenuri',
+  zone: '',
+  area: '',
+  status: 'Disponibil',
+  type: '',
+  price: '',
+  image: '',
+  description: '',
+};
+
+const fields: Array<{ key: keyof PropertyInput; label: string; placeholder: string }> = [
+  { key: 'title', label: 'Titlu', placeholder: 'Ex. Coridorul de Nord' },
+  { key: 'slug', label: 'Slug URL', placeholder: 'ex. coridorul-de-nord' },
+  { key: 'location', label: 'Localizare', placeholder: 'Oraș · zonă' },
+  { key: 'size', label: 'Suprafață', placeholder: '14.800 mp' },
+  { key: 'category', label: 'Categorie', placeholder: 'Terenuri' },
+  { key: 'zone', label: 'Zonă', placeholder: 'București' },
+  { key: 'area', label: 'Filtru suprafață', placeholder: 'Peste 10.000 mp' },
+  { key: 'type', label: 'Tip', placeholder: 'Teren intravilan' },
+  { key: 'price', label: 'Preț', placeholder: 'Peste 1M €' },
+  { key: 'image', label: 'Imagine URL', placeholder: 'https://...' },
+];
+
+function PropertyForm({
+  editing,
+  onCancel,
+  onSaved,
+}: {
+  editing: Property | null;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const [form, setForm] = useState<PropertyInput>(editing ? { ...editing } : emptyForm);
+  const [error, setError] = useState('');
+  const createProperty = useCreateProperty();
+  const updateProperty = useUpdateProperty();
+  const queryClient = useQueryClient();
+  const isSaving = createProperty.isPending || updateProperty.isPending;
+
+  const updateField = (key: keyof PropertyInput, value: string) => {
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    const mutationOptions = {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListPropertiesQueryKey() });
+        onSaved();
+      },
+      onError: () => setError('Nu am putut salva proprietatea. Verifică datele și încearcă din nou.'),
+    };
+
+    if (editing) {
+      updateProperty.mutate({ slug: editing.slug, data: form }, mutationOptions);
+    } else {
+      createProperty.mutate({ data: form }, mutationOptions);
+    }
+  };
+
+  return (
+    <form className="admin-form" onSubmit={submit}>
+      <div className="admin-form-head">
+        <div>
+          <div className="eyebrow">{editing ? 'Editare proprietate' : 'Proprietate nouă'}</div>
+          <h2 className="display">{editing ? editing.title : 'Adaugă o oportunitate.'}</h2>
+        </div>
+        <button type="button" className="admin-icon-button" onClick={onCancel} aria-label="Închide formularul"><X size={18} /></button>
+      </div>
+      <div className="admin-form-grid">
+        {fields.map(({ key, label, placeholder }) => (
+          <label className="admin-field" key={key}>
+            {label}
+            <input required className="form-input" value={form[key]} placeholder={placeholder} onChange={(event) => updateField(key, event.target.value)} />
+          </label>
+        ))}
+        <label className="admin-field">
+          Status
+          <select className="form-input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+            <option>Disponibil</option>
+            <option>Oportunitate</option>
+            <option>În analiză</option>
+            <option>Rezervat</option>
+          </select>
+        </label>
+        <label className="admin-field admin-field-wide">
+          Descriere
+          <textarea required className="form-input" value={form.description} placeholder="Descrierea oportunității" onChange={(event) => updateField('description', event.target.value)} />
+        </label>
+      </div>
+      {error && <p className="admin-error">{error}</p>}
+      <div className="admin-actions">
+        <button type="button" className="button button-ghost" onClick={onCancel}>Anulează</button>
+        <button type="submit" className="button button-primary" disabled={isSaving}>
+          {isSaving ? 'Se salvează…' : <><Save size={15} /> Salvează proprietatea</>}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export default function Admin() {
+  const [editing, setEditing] = useState<Property | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [notice, setNotice] = useState('');
+  const { data: properties = [], isLoading, isError } = useListProperties();
+  const deleteProperty = useDeleteProperty();
+  const queryClient = useQueryClient();
+
+  const closeForm = () => {
+    setCreating(false);
+    setEditing(null);
+  };
+
+  const handleSaved = () => {
+    closeForm();
+    setNotice('Proprietatea a fost salvată.');
+    window.setTimeout(() => setNotice(''), 3000);
+  };
+
+  const handleDelete = (property: Property) => {
+    if (!window.confirm(`Ștergi proprietatea „${property.title}”? Această acțiune nu poate fi anulată.`)) return;
+    deleteProperty.mutate({ slug: property.slug }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListPropertiesQueryKey() });
+        setNotice('Proprietatea a fost ștearsă.');
+      },
+    });
+  };
+
+  return (
+    <div className="admin-shell">
+      <header className="admin-header">
+        <div className="container-wide admin-header-inner">
+          <Link href="/" className="brand">
+            <span className="brand-mark"><span>AP</span></span>
+            <span className="brand-name">ADD<br /><small>Partners</small></span>
+          </Link>
+          <Link href="/" className="admin-back"><ArrowLeft size={15} /> Vezi website-ul</Link>
+        </div>
+      </header>
+      <main className="container-wide admin-main">
+        <div className="admin-title-row">
+          <div>
+            <div className="eyebrow">Administrare</div>
+            <h1 className="display">Proprietăți.</h1>
+            <p>Gestionează oportunitățile afișate pe website.</p>
+          </div>
+          {!creating && !editing && <button className="button button-primary" onClick={() => setCreating(true)}><Plus size={16} /> Proprietate nouă</button>}
+        </div>
+        {notice && <div className="admin-notice"><Check size={16} /> {notice}</div>}
+        {(creating || editing) && <PropertyForm editing={editing} onCancel={closeForm} onSaved={handleSaved} />}
+        <section className="admin-list">
+          <div className="admin-list-head"><span>{properties.length} proprietăți</span><span>Status publicare</span></div>
+          {isLoading && <div className="admin-empty">Se încarcă proprietățile…</div>}
+          {isError && <div className="admin-empty admin-error">Lista nu a putut fi încărcată.</div>}
+          {!isLoading && !isError && properties.map((property) => (
+            <div className="admin-row" key={property.id}>
+              <div className="admin-row-image" style={{ backgroundImage: `url(${property.image})` }} />
+              <div className="admin-row-info">
+                <strong>{property.title}</strong>
+                <span>{property.location} · {property.size}</span>
+                <small>{property.slug}</small>
+              </div>
+              <span className="admin-status">{property.status}</span>
+              <div className="admin-row-actions">
+                <button className="admin-icon-button" onClick={() => { setEditing(property); setCreating(false); }} aria-label={`Editează ${property.title}`}><Pencil size={16} /></button>
+                <button className="admin-icon-button danger" onClick={() => handleDelete(property)} aria-label={`Șterge ${property.title}`}><Trash2 size={16} /></button>
+              </div>
+            </div>
+          ))}
+          {!isLoading && !isError && properties.length === 0 && <div className="admin-empty">Nu există proprietăți. Adaugă prima oportunitate.</div>}
+        </section>
+      </main>
+    </div>
+  );
+}

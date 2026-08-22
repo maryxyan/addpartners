@@ -60,4 +60,42 @@ router.post("/properties", async (req, res, next) => {
   }
 });
 
+router.patch("/properties/:slug", async (req, res, next) => {
+  try {
+    const input = CreatePropertyBody.parse(req.body);
+    const [property] = await db
+      .update(propertiesTable)
+      .set(input)
+      .where(eq(propertiesTable.slug, req.params.slug))
+      .returning();
+
+    if (!property) {
+      res.status(404).json({ error: "Property not found" });
+      return;
+    }
+
+    res.json(property);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/properties/:slug", async (req, res, next) => {
+  try {
+    const [property] = await db
+      .delete(propertiesTable)
+      .where(eq(propertiesTable.slug, req.params.slug))
+      .returning({ id: propertiesTable.id });
+
+    if (!property) {
+      res.status(404).json({ error: "Property not found" });
+      return;
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

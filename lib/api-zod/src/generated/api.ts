@@ -119,6 +119,69 @@ export const GetPropertyResponse = zod.object({
 
 
 /**
+ * @summary Update a property listing
+ */
+export const UpdatePropertyParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const UpdatePropertyBody = zod.object({
+  "title": zod.string().min(1),
+  "slug": zod.string().min(1),
+  "location": zod.string().min(1),
+  "size": zod.string().min(1),
+  "category": zod.string().min(1),
+  "zone": zod.string().min(1),
+  "area": zod.string().min(1),
+  "status": zod.string().min(1),
+  "type": zod.string().min(1),
+  "price": zod.string().min(1),
+  "image": zod.string().min(1),
+  "description": zod.string().min(1)
+})
+
+export const UpdatePropertyResponse = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "location": zod.string(),
+  "size": zod.string(),
+  "category": zod.string(),
+  "zone": zod.string(),
+  "area": zod.string(),
+  "status": zod.string(),
+  "type": zod.string(),
+  "price": zod.string(),
+  "image": zod.string(),
+  "description": zod.string()
+})
+
+
+/**
+ * @summary Delete a property listing
+ */
+export const DeletePropertyParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const DeletePropertyResponse = zod.void()
+
+
+/**
  * @summary Save a contact or land acquisition inquiry
  */
 
