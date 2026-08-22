@@ -17,4 +17,48 @@
 //   export type InsertPost = z.infer<typeof insertPostSchema>;
 //   export type Post = typeof postsTable.$inferSelect;
 
-export {}
+import { createInsertSchema } from "drizzle-zod";
+import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { z } from "zod/v4";
+
+export const propertiesTable = pgTable("properties", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  location: text("location").notNull(),
+  size: text("size").notNull(),
+  category: text("category").notNull(),
+  zone: text("zone").notNull(),
+  area: text("area").notNull(),
+  status: text("status").notNull(),
+  type: text("type").notNull(),
+  price: text("price").notNull(),
+  image: text("image").notNull(),
+  description: text("description").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const inquiriesTable = pgTable("inquiries", {
+  id: serial("id").primaryKey(),
+  kind: text("kind").notNull(),
+  name: text("name").notNull(),
+  contact: text("contact").notNull(),
+  location: text("location"),
+  propertySlug: text("property_slug"),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const insertPropertySchema = createInsertSchema(propertiesTable).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertProperty = z.infer<typeof insertPropertySchema>;
+export type Property = typeof propertiesTable.$inferSelect;
+
+export const insertInquirySchema = createInsertSchema(inquiriesTable).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertInquiry = z.infer<typeof insertInquirySchema>;
+export type Inquiry = typeof inquiriesTable.$inferSelect;

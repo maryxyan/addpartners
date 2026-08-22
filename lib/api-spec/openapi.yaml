@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: properties
+    description: Property listings
+  - name: inquiries
+    description: Contact and acquisition inquiries
 paths:
   /healthz:
     get:
@@ -24,6 +28,87 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /properties:
+    get:
+      operationId: listProperties
+      tags: [properties]
+      summary: List published properties
+      parameters:
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: zone
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+      responses:
+        "200":
+          description: Published properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Property"
+    post:
+      operationId: createProperty
+      tags: [properties]
+      summary: Create a property listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyInput"
+      responses:
+        "201":
+          description: Created property
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+  /properties/{slug}:
+    get:
+      operationId: getProperty
+      tags: [properties]
+      summary: Get a property listing
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Property
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+        "404":
+          description: Property not found
+  /inquiries:
+    post:
+      operationId: createInquiry
+      tags: [inquiries]
+      summary: Save a contact or land acquisition inquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InquiryInput"
+      responses:
+        "201":
+          description: Inquiry received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Inquiry"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +118,59 @@ components:
           type: string
       required:
         - status
+    Property:
+      type: object
+      required: [id, slug, title, location, size, category, zone, area, status, type, price, image, description]
+      properties:
+        id: { type: number }
+        slug: { type: string }
+        title: { type: string }
+        location: { type: string }
+        size: { type: string }
+        category: { type: string }
+        zone: { type: string }
+        area: { type: string }
+        status: { type: string }
+        type: { type: string }
+        price: { type: string }
+        image: { type: string }
+        description: { type: string }
+    PropertyInput:
+      type: object
+      required: [title, slug, location, size, category, zone, area, status, type, price, image, description]
+      properties:
+        title: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
+        location: { type: string, minLength: 1 }
+        size: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        zone: { type: string, minLength: 1 }
+        area: { type: string, minLength: 1 }
+        status: { type: string, minLength: 1 }
+        type: { type: string, minLength: 1 }
+        price: { type: string, minLength: 1 }
+        image: { type: string, minLength: 1 }
+        description: { type: string, minLength: 1 }
+    Inquiry:
+      type: object
+      required: [id, kind, name, contact, message, createdAt]
+      properties:
+        id: { type: number }
+        kind: { type: string }
+        name: { type: string }
+        contact: { type: string }
+        location: { type: ["string", "null"] }
+        propertySlug: { type: ["string", "null"] }
+        message: { type: string }
+        createdAt: { type: string, format: date-time }
+    InquiryInput:
+      type: object
+      required: [kind, name, contact, message]
+      properties:
+        kind: { type: string, enum: [contact, land] }
+        name: { type: string, minLength: 1 }
+        contact: { type: string, minLength: 1 }
+        location: { type: string }
+        propertySlug: { type: string }
+        message: { type: string, minLength: 1 }
 

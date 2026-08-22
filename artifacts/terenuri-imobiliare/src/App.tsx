@@ -17,8 +17,14 @@ import {
   Route,
   Switch,
   useLocation,
+  useRoute,
   Router as WouterRouter,
 } from 'wouter';
+import {
+  useCreateInquiry,
+  useGetProperty,
+  useListProperties,
+} from '@workspace/api-client-react';
 
 const queryClient = new QueryClient();
 
@@ -32,6 +38,7 @@ function Home() {
   const [typeFilter, setTypeFilter] = useState('Toate tipurile');
   const [modal, setModal] = useState<'contact' | 'land' | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const createInquiry = useCreateInquiry();
 
   const navItems = [
     ['Proprietăți', 'proprietati'],
@@ -43,64 +50,7 @@ function Home() {
     ['Despre noi', 'despre-noi'],
   ];
 
-  const properties = [
-    {
-      id: '01',
-      title: 'Coridorul de Nord',
-      location: 'București · Ștefăneștii de Jos',
-      size: '14.800 mp',
-      category: 'Terenuri',
-      zone: 'București',
-      area: 'Peste 10.000 mp',
-      status: 'Disponibil',
-      type: 'Teren intravilan',
-      price: 'Peste 1M €',
-      image:
-        'https://images.unsplash.com/photo-1541971875076-8f970d573be6?auto=format&fit=crop&w=1300&q=85',
-    },
-    {
-      id: '02',
-      title: 'Atelierul 42',
-      location: 'Cluj-Napoca · Iris',
-      size: '3.240 mp',
-      category: 'Comercial',
-      zone: 'Cluj-Napoca',
-      area: '1.000 – 5.000 mp',
-      status: 'Oportunitate',
-      type: 'Clădire comercială',
-      price: '500k – 1M €',
-      image:
-        'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=85',
-    },
-    {
-      id: '03',
-      title: 'Valea Verde',
-      location: 'Brașov · Sânpetru',
-      size: '8.900 mp',
-      category: 'Rezidențial',
-      zone: 'Brașov',
-      area: '5.000 – 10.000 mp',
-      status: 'În analiză',
-      type: 'Teren pentru dezvoltare',
-      price: '500k – 1M €',
-      image:
-        'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=85',
-    },
-    {
-      id: '04',
-      title: 'Platforma Vest',
-      location: 'Ploiești · Ariceștii Rahtivani',
-      size: '31.600 mp',
-      category: 'Logistic / Industrial',
-      zone: 'Ploiești',
-      area: 'Peste 10.000 mp',
-      status: 'Disponibil',
-      type: 'Platformă logistică',
-      price: 'Peste 1M €',
-      image:
-        'https://images.unsplash.com/photo-1565610222536-ef125c59da2e?auto=format&fit=crop&w=1000&q=85',
-    },
-  ];
+  const { data: properties = [], isLoading: propertiesLoading } = useListProperties();
 
   const filteredProperties =
     filter === 'Toate'
@@ -126,7 +76,18 @@ function Home() {
 
   const submitForm = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
+    const form = new FormData(event.currentTarget);
+    createInquiry.mutate({
+      data: {
+        name: String(form.get('name') ?? ''),
+        contact: String(form.get('contact') ?? ''),
+        message: String(form.get('message') ?? ''),
+        location: modal === 'land' ? String(form.get('location') ?? '') : undefined,
+        kind: modal === 'land' ? 'land' : 'contact',
+      },
+    }, {
+      onSuccess: () => setSubmitted(true),
+    });
   };
 
   useEffect(() => {
@@ -276,10 +237,12 @@ function Home() {
               </div>
               <div className="filter-count" data-testid="text-property-count">{visibleProperties.length} oportunități selectate</div>
             </div>
-            {visibleProperties.length > 0 ? (
+            {propertiesLoading ? (
+              <div className="empty-state">Se încarcă oportunitățile disponibile…</div>
+            ) : visibleProperties.length > 0 ? (
               <div className="property-grid">
                 {visibleProperties.map((property) => (
-                  <article className="property-card" key={property.id} data-testid={`card-property-${property.id}`}>
+                  <a className="property-card" key={property.id} href={`${import.meta.env.BASE_URL}proprietati/${property.slug}`} data-testid={`card-property-${property.id}`}>
                     <div className="property-image" style={{ backgroundImage: `url(${property.image})` }} />
                     <div className="property-arrow"><ArrowUpRight size={18} /></div>
                     <div className="property-content">
@@ -290,7 +253,7 @@ function Home() {
                         <span>{property.size}</span>
                       </div>
                     </div>
-                  </article>
+                  </a>
                 ))}
               </div>
             ) : (
@@ -499,6 +462,58 @@ function Home() {
   );
 }
 
+function PropertyDetail() {
+  const [, params] = useRoute('/proprietati/:slug');
+  const { data: property, isLoading, isError } = useGetProperty(params?.slug ?? '');
+  const openInquiry = () => {
+    window.location.href = `${import.meta.env.BASE_URL}#contact`;
+  };
+
+  if (isLoading) return <div className="site-shell"><main className="container-wide empty-state">Se încarcă proprietatea…</main></div>;
+  if (isError || !property) return <NotFound />;
+
+  return (
+    <div className="site-shell">
+      <header className="header detail-header">
+        <div className="container-wide header-inner">
+          <a href={import.meta.env.BASE_URL} className="brand" data-testid="link-detail-brand">
+            <span className="brand-mark"><span>AP</span></span>
+            <span className="brand-name">ADD<br /><small>Partners</small></span>
+          </a>
+          <a className="header-contact" href={`${import.meta.env.BASE_URL}#contact`}>Discutăm o oportunitate <ArrowUpRight size={15} /></a>
+        </div>
+      </header>
+      <main>
+        <section className="detail-hero">
+          <div className="container-wide detail-hero-grid">
+            <div>
+              <a className="eyebrow detail-back" href={`${import.meta.env.BASE_URL}#proprietati`}>← Înapoi la proprietăți</a>
+              <span className="property-type">{property.category}</span>
+              <h1 className="display">{property.title}</h1>
+              <p className="detail-location"><MapPin size={15} /> {property.location}</p>
+              <p className="detail-description">{property.description}</p>
+              <button className="button button-primary" onClick={openInquiry}>Solicită detalii <ArrowUpRight size={15} /></button>
+            </div>
+            <div className="detail-image" style={{ backgroundImage: `url(${property.image})` }} />
+          </div>
+        </section>
+        <section className="section detail-facts">
+          <div className="container-wide">
+            <div className="eyebrow">Date esențiale</div>
+            <div className="detail-facts-grid">
+              <div><span>Suprafață</span><strong>{property.size}</strong></div>
+              <div><span>Zonă</span><strong>{property.zone}</strong></div>
+              <div><span>Status</span><strong>{property.status}</strong></div>
+              <div><span>Tip</span><strong>{property.type}</strong></div>
+              <div><span>Preț indicativ</span><strong>{property.price}</strong></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
 function Router() {
   return (
     // Keep a shared shell (sidebar, navbar) outside the boundary so it
@@ -506,6 +521,7 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/proprietati/:slug" component={PropertyDetail} />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>
