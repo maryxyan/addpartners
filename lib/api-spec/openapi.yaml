@@ -207,6 +207,90 @@ paths:
               schema: { type: string, format: binary }
         "404":
           description: Object not found
+  /catalog/{kind}:
+    get:
+      operationId: listCatalogItems
+      tags: [properties]
+      summary: List property categories or statuses
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          schema: { type: string, enum: [categories, statuses] }
+      responses:
+        "200":
+          description: Catalog items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatalogItem"
+    post:
+      operationId: createCatalogItem
+      tags: [properties]
+      summary: Create a property category or status
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          schema: { type: string, enum: [categories, statuses] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogInput"
+      responses:
+        "201":
+          description: Catalog item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogItem"
+  /catalog/{kind}/{id}:
+    patch:
+      operationId: updateCatalogItem
+      tags: [properties]
+      summary: Update a property category or status
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          schema: { type: string, enum: [categories, statuses] }
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogInput"
+      responses:
+        "200":
+          description: Catalog item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogItem"
+    delete:
+      operationId: deleteCatalogItem
+      tags: [properties]
+      summary: Delete a property category or status
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          schema: { type: string, enum: [categories, statuses] }
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "204":
+          description: Catalog item deleted
 components:
   schemas:
     HealthStatus:
@@ -286,4 +370,17 @@ components:
         objectPath: { type: string }
         metadata:
           $ref: "#/components/schemas/UploadUrlRequest"
+    CatalogItem:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id: { type: number }
+        name: { type: string }
+        slug: { type: string }
+    CatalogInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name: { type: string, minLength: 1 }
+        slug: { type: string, minLength: 1 }
 

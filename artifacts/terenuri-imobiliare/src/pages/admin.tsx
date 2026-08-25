@@ -4,10 +4,16 @@ import { ArrowLeft, Check, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import {
   type Property,
   type PropertyInput,
+  type CatalogItem,
   getListPropertiesQueryKey,
+  getListCatalogItemsQueryKey,
   useCreateProperty,
+  useCreateCatalogItem,
   useDeleteProperty,
+  useDeleteCatalogItem,
+  useListCatalogItems,
   useListProperties,
+  useUpdateCatalogItem,
   useRequestUploadUrl,
   useUpdateProperty,
 } from '@workspace/api-client-react';
@@ -33,7 +39,6 @@ const fields: Array<{ key: keyof PropertyInput; label: string; placeholder: stri
   { key: 'slug', label: 'Slug URL', placeholder: 'ex. coridorul-de-nord' },
   { key: 'location', label: 'Localizare', placeholder: 'Oraș · zonă' },
   { key: 'size', label: 'Suprafață', placeholder: '14.800 mp' },
-  { key: 'category', label: 'Categorie', placeholder: 'Terenuri' },
   { key: 'zone', label: 'Zonă', placeholder: 'București' },
   { key: 'area', label: 'Filtru suprafață', placeholder: 'Peste 10.000 mp' },
   { key: 'type', label: 'Tip', placeholder: 'Teren intravilan' },
@@ -55,6 +60,8 @@ function PropertyForm({
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const requestUploadUrl = useRequestUploadUrl();
+  const { data: categories = [] } = useListCatalogItems('categories');
+  const { data: statuses = [] } = useListCatalogItems('statuses');
   const queryClient = useQueryClient();
   const isSaving = createProperty.isPending || updateProperty.isPending;
 
@@ -128,6 +135,13 @@ function PropertyForm({
             <input required className="form-input" value={form[key]} placeholder={placeholder} onChange={(event) => updateField(key, event.target.value)} />
           </label>
         ))}
+        <label className="admin-field">
+          Categorie
+          <select required className="form-input" value={form.category} onChange={(event) => updateField('category', event.target.value)}>
+            {categories.length === 0 && <option value="">Se încarcă…</option>}
+            {categories.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
+          </select>
+        </label>
         <label className="admin-field admin-field-wide">
           Imagine proprietate
           <input className="form-input admin-file-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} disabled={uploading} />
@@ -137,11 +151,9 @@ function PropertyForm({
         </label>
         <label className="admin-field">
           Status
-          <select className="form-input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
-            <option>Disponibil</option>
-            <option>Oportunitate</option>
-            <option>În analiză</option>
-            <option>Rezervat</option>
+          <select required className="form-input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
+            {statuses.length === 0 && <option value="">Se încarcă…</option>}
+            {statuses.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
           </select>
         </label>
         <label className="admin-field admin-field-wide">
@@ -157,6 +169,73 @@ function PropertyForm({
         </button>
       </div>
     </form>
+  );
+}
+
+function CatalogManager({ kind, title }: { kind: 'categories' | 'statuses'; title: string }) {
+  const [editing, setEditing] = useState<CatalogItem | null>(null);
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const { data: items = [], isLoading } = useListCatalogItems(kind);
+  const createItem = useCreateCatalogItem();
+  const updateItem = useUpdateCatalogItem();
+  const deleteItem = useDeleteCatalogItem();
+  const queryClient = useQueryClient();
+
+  const reset = () => {
+    setEditing(null);
+    setName('');
+    setError('');
+  };
+  const slugify = (value: string) => value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    const data = { name: name.trim(), slug: slugify(name) };
+    const options = {
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListCatalogItemsQueryKey(kind) }); reset(); },
+      onError: () => setError('Nu am putut salva elementul. Verifică dacă numele există deja.'),
+    };
+    if (editing) updateItem.mutate({ kind, id: editing.id, data }, options);
+    else createItem.mutate({ kind, data }, options);
+  };
+  const remove = (item: CatalogItem) => {
+    if (!window.confirm(`Ștergi „${item.name}”? Proprietățile existente nu vor fi modificate automat.`)) return;
+    deleteItem.mutate({ kind, id: item.id }, {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListCatalogItemsQueryKey(kind) }),
+      onError: () => setError('Elementul nu a putut fi șters.'),
+    });
+  };
+
+  return (
+    <section className="catalog-card">
+      <div className="catalog-card-head">
+        <div><div className="eyebrow">Nomenclator</div><h2>{title}</h2></div>
+        {!editing && <button className="admin-icon-button" onClick={() => setEditing({ id: 0, name: '', slug: '' })} aria-label={`Adaugă ${title}`}><Plus size={17} /></button>}
+      </div>
+      {editing && (
+        <form className="catalog-form" onSubmit={submit}>
+          <input required autoFocus className="form-input" value={name} placeholder={`Nume ${title.toLowerCase()}`} onChange={(event) => setName(event.target.value)} />
+          <button className="admin-icon-button" type="submit" aria-label="Salvează"><Save size={15} /></button>
+          <button className="admin-icon-button" type="button" onClick={reset} aria-label="Anulează"><X size={15} /></button>
+        </form>
+      )}
+      {error && <p className="admin-error">{error}</p>}
+      <div className="catalog-items">
+        {isLoading && <span className="admin-upload-hint">Se încarcă…</span>}
+        {items.map((item) => (
+          <div className="catalog-item" key={item.id}>
+            {editing?.id === item.id ? (
+              <span className="catalog-editing">Editează mai sus</span>
+            ) : <><span>{item.name}</span><small>{item.slug}</small></>}
+            <div className="catalog-item-actions">
+              <button className="admin-icon-button" onClick={() => { setEditing(item); setName(item.name); }} aria-label={`Editează ${item.name}`}><Pencil size={13} /></button>
+              <button className="admin-icon-button danger" onClick={() => remove(item)} aria-label={`Șterge ${item.name}`}><Trash2 size={13} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -211,6 +290,10 @@ export default function Admin() {
         </div>
         {notice && <div className="admin-notice"><Check size={16} /> {notice}</div>}
         {(creating || editing) && <PropertyForm editing={editing} onCancel={closeForm} onSaved={handleSaved} />}
+        <div className="catalog-grid">
+          <CatalogManager kind="categories" title="Categorii" />
+          <CatalogManager kind="statuses" title="Statusuri" />
+        </div>
         <section className="admin-list">
           <div className="admin-list-head"><span>{properties.length} proprietăți</span><span>Status publicare</span></div>
           {isLoading && <div className="admin-empty">Se încarcă proprietățile…</div>}

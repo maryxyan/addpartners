@@ -100,6 +100,19 @@ export interface UploadUrlResponse {
   metadata: UploadUrlRequest;
 }
 
+export interface CatalogItem {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface CatalogInput {
+  /** @minLength 1 */
+  name: string;
+  /** @minLength 1 */
+  slug: string;
+}
+
 export type ListPropertiesParams = {
 category?: string;
 zone?: string;

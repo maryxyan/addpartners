@@ -260,3 +260,76 @@ export const GetStorageObjectParams = zod.object({
 export const GetStorageObjectResponse = zod.unknown()
 
 
+/**
+ * @summary List property categories or statuses
+ */
+export const ListCatalogItemsParams = zod.object({
+  "kind": zod.enum(['categories', 'statuses'])
+})
+
+export const ListCatalogItemsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "slug": zod.string()
+})
+export const ListCatalogItemsResponse = zod.array(ListCatalogItemsResponseItem)
+
+
+/**
+ * @summary Create a property category or status
+ */
+export const CreateCatalogItemParams = zod.object({
+  "kind": zod.enum(['categories', 'statuses'])
+})
+
+
+
+
+
+export const CreateCatalogItemBody = zod.object({
+  "name": zod.string().min(1),
+  "slug": zod.string().min(1)
+})
+
+export const CreateCatalogItemResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "slug": zod.string()
+})
+
+
+/**
+ * @summary Update a property category or status
+ */
+export const UpdateCatalogItemParams = zod.object({
+  "kind": zod.enum(['categories', 'statuses']),
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+export const UpdateCatalogItemBody = zod.object({
+  "name": zod.string().min(1),
+  "slug": zod.string().min(1)
+})
+
+export const UpdateCatalogItemResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "slug": zod.string()
+})
+
+
+/**
+ * @summary Delete a property category or status
+ */
+export const DeleteCatalogItemParams = zod.object({
+  "kind": zod.enum(['categories', 'statuses']),
+  "id": zod.coerce.number()
+})
+
+export const DeleteCatalogItemResponse = zod.void()
+
+

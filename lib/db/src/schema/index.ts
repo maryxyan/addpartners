@@ -49,6 +49,20 @@ export const inquiriesTable = pgTable("inquiries", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const propertyCategoriesTable = pgTable("property_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const propertyStatusesTable = pgTable("property_statuses", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const insertPropertySchema = createInsertSchema(propertiesTable).omit({
   id: true,
   createdAt: true,
@@ -62,3 +76,17 @@ export const insertInquirySchema = createInsertSchema(inquiriesTable).omit({
 });
 export type InsertInquiry = z.infer<typeof insertInquirySchema>;
 export type Inquiry = typeof inquiriesTable.$inferSelect;
+
+export const insertPropertyCategorySchema = createInsertSchema(propertyCategoriesTable).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertPropertyCategory = z.infer<typeof insertPropertyCategorySchema>;
+export type PropertyCategory = typeof propertyCategoriesTable.$inferSelect;
+
+export const insertPropertyStatusSchema = createInsertSchema(propertyStatusesTable).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertPropertyStatus = z.infer<typeof insertPropertyStatusSchema>;
+export type PropertyStatus = typeof propertyStatusesTable.$inferSelect;

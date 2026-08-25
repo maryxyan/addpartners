@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CatalogInput,
+  CatalogItem,
   HealthStatus,
   Inquiry,
   InquiryInput,
@@ -805,4 +807,300 @@ export function useGetStorageObject<TData = Awaited<ReturnType<typeof getStorage
 
 
 
+
+export const getListCatalogItemsUrl = (kind: 'categories' | 'statuses',) => {
+
+
+
+
+  return `/api/catalog/${kind}`
+}
+
+/**
+ * @summary List property categories or statuses
+ */
+export const listCatalogItems = async (kind: 'categories' | 'statuses', options?: Parameters<typeof customFetch>[1]): Promise<CatalogItem[]> => {
+
+  return customFetch<CatalogItem[]>(getListCatalogItemsUrl(kind),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCatalogItemsQueryKey = (kind: 'categories' | 'statuses',) => {
+    return [
+    `/api/catalog/${kind}`
+    ] as const;
+    }
+
+
+export const getListCatalogItemsQueryOptions = <TData = Awaited<ReturnType<typeof listCatalogItems>>, TError = ErrorType<unknown>>(kind: 'categories' | 'statuses', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCatalogItems>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCatalogItemsQueryKey(kind);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCatalogItems>>> = ({ signal }) => listCatalogItems(kind, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: kind !== null && kind !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCatalogItems>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCatalogItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listCatalogItems>>>
+export type ListCatalogItemsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List property categories or statuses
+ */
+
+export function useListCatalogItems<TData = Awaited<ReturnType<typeof listCatalogItems>>, TError = ErrorType<unknown>>(
+ kind: 'categories' | 'statuses', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCatalogItems>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCatalogItemsQueryOptions(kind,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCatalogItemUrl = (kind: 'categories' | 'statuses',) => {
+
+
+
+
+  return `/api/catalog/${kind}`
+}
+
+/**
+ * @summary Create a property category or status
+ */
+export const createCatalogItem = async (kind: 'categories' | 'statuses',
+    catalogInput: CatalogInput, options?: Parameters<typeof customFetch>[1]): Promise<CatalogItem> => {
+
+  return customFetch<CatalogItem>(getCreateCatalogItemUrl(kind),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(catalogInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCatalogItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCatalogItem>>, TError,{kind: 'categories' | 'statuses';data: BodyType<CatalogInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCatalogItem>>, TError,{kind: 'categories' | 'statuses';data: BodyType<CatalogInput>}, TContext> => {
+
+const mutationKey = ['createCatalogItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCatalogItem>>, {kind: 'categories' | 'statuses';data: BodyType<CatalogInput>}> = (props) => {
+          const {kind,data} = props ?? {};
+
+          return  createCatalogItem(kind,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCatalogItemMutationResult = NonNullable<Awaited<ReturnType<typeof createCatalogItem>>>
+    export type CreateCatalogItemMutationBody = BodyType<CatalogInput>
+    export type CreateCatalogItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a property category or status
+ */
+export const useCreateCatalogItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCatalogItem>>, TError,{kind: 'categories' | 'statuses';data: BodyType<CatalogInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCatalogItem>>,
+        TError,
+        {kind: 'categories' | 'statuses';data: BodyType<CatalogInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCatalogItemMutationOptions(options));
+    }
+
+export const getUpdateCatalogItemUrl = (kind: 'categories' | 'statuses',
+    id: number,) => {
+
+
+
+
+  return `/api/catalog/${kind}/${id}`
+}
+
+/**
+ * @summary Update a property category or status
+ */
+export const updateCatalogItem = async (kind: 'categories' | 'statuses',
+    id: number,
+    catalogInput: CatalogInput, options?: Parameters<typeof customFetch>[1]): Promise<CatalogItem> => {
+
+  return customFetch<CatalogItem>(getUpdateCatalogItemUrl(kind,id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(catalogInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCatalogItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCatalogItem>>, TError,{kind: 'categories' | 'statuses';id: number;data: BodyType<CatalogInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCatalogItem>>, TError,{kind: 'categories' | 'statuses';id: number;data: BodyType<CatalogInput>}, TContext> => {
+
+const mutationKey = ['updateCatalogItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCatalogItem>>, {kind: 'categories' | 'statuses';id: number;data: BodyType<CatalogInput>}> = (props) => {
+          const {kind,id,data} = props ?? {};
+
+          return  updateCatalogItem(kind,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCatalogItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateCatalogItem>>>
+    export type UpdateCatalogItemMutationBody = BodyType<CatalogInput>
+    export type UpdateCatalogItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a property category or status
+ */
+export const useUpdateCatalogItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCatalogItem>>, TError,{kind: 'categories' | 'statuses';id: number;data: BodyType<CatalogInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCatalogItem>>,
+        TError,
+        {kind: 'categories' | 'statuses';id: number;data: BodyType<CatalogInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCatalogItemMutationOptions(options));
+    }
+
+export const getDeleteCatalogItemUrl = (kind: 'categories' | 'statuses',
+    id: number,) => {
+
+
+
+
+  return `/api/catalog/${kind}/${id}`
+}
+
+/**
+ * @summary Delete a property category or status
+ */
+export const deleteCatalogItem = async (kind: 'categories' | 'statuses',
+    id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteCatalogItemUrl(kind,id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteCatalogItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogItem>>, TError,{kind: 'categories' | 'statuses';id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogItem>>, TError,{kind: 'categories' | 'statuses';id: number}, TContext> => {
+
+const mutationKey = ['deleteCatalogItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCatalogItem>>, {kind: 'categories' | 'statuses';id: number}> = (props) => {
+          const {kind,id} = props ?? {};
+
+          return  deleteCatalogItem(kind,id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCatalogItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCatalogItem>>>
+
+    export type DeleteCatalogItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a property category or status
+ */
+export const useDeleteCatalogItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCatalogItem>>, TError,{kind: 'categories' | 'statuses';id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCatalogItem>>,
+        TError,
+        {kind: 'categories' | 'statuses';id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCatalogItemMutationOptions(options));
+    }
 
