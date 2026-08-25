@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Check, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import {
@@ -8,6 +8,7 @@ import {
   useCreateProperty,
   useDeleteProperty,
   useListProperties,
+  useRequestUploadUrl,
   useUpdateProperty,
 } from '@workspace/api-client-react';
 import { Link } from 'wouter';
@@ -37,7 +38,6 @@ const fields: Array<{ key: keyof PropertyInput; label: string; placeholder: stri
   { key: 'area', label: 'Filtru suprafață', placeholder: 'Peste 10.000 mp' },
   { key: 'type', label: 'Tip', placeholder: 'Teren intravilan' },
   { key: 'price', label: 'Preț', placeholder: 'Peste 1M €' },
-  { key: 'image', label: 'Imagine URL', placeholder: 'https://...' },
 ];
 
 function PropertyForm({
@@ -51,13 +51,47 @@ function PropertyForm({
 }) {
   const [form, setForm] = useState<PropertyInput>(editing ? { ...editing } : emptyForm);
   const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
+  const requestUploadUrl = useRequestUploadUrl();
   const queryClient = useQueryClient();
   const isSaving = createProperty.isPending || updateProperty.isPending;
 
   const updateField = (key: keyof PropertyInput, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const uploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Selectează un fișier imagine.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Imaginea trebuie să fie mai mică de 10 MB.');
+      return;
+    }
+
+    setError('');
+    setUploading(true);
+    try {
+      const { uploadURL, objectPath } = await requestUploadUrl.mutateAsync({
+        data: { name: file.name, size: file.size, contentType: file.type },
+      });
+      const uploadResponse = await fetch(uploadURL, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+      if (!uploadResponse.ok) throw new Error('Încărcarea imaginii a eșuat.');
+      updateField('image', `/api/storage${objectPath}`);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : 'Încărcarea imaginii a eșuat.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -94,6 +128,13 @@ function PropertyForm({
             <input required className="form-input" value={form[key]} placeholder={placeholder} onChange={(event) => updateField(key, event.target.value)} />
           </label>
         ))}
+        <label className="admin-field admin-field-wide">
+          Imagine proprietate
+          <input className="form-input admin-file-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} disabled={uploading} />
+          <span className="admin-upload-hint">{uploading ? 'Se încarcă imaginea în storage…' : 'JPG, PNG sau WebP · maximum 10 MB'}</span>
+          {form.image && <img className="admin-image-preview" src={form.image} alt="Previzualizare proprietate" />}
+          <input required className="form-input" value={form.image} placeholder="/api/storage/objects/..." onChange={(event) => updateField('image', event.target.value)} aria-label="Calea imaginii salvate" />
+        </label>
         <label className="admin-field">
           Status
           <select className="form-input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
