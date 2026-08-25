@@ -626,6 +626,17 @@ body { background: #eee9df; color: #1e3935; }
 .catalog-item-actions { display: flex; gap: 5px; }
 .catalog-item-actions .admin-icon-button { width: 30px; height: 30px; }
 .catalog-editing { color: #a96b48; font: 10px var(--app-font-mono) !important; text-transform: uppercase; }
+.admin-inquiries { margin-bottom: 52px; }
+.admin-section-title { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 22px; }
+.admin-section-title h2 { margin: 10px 0 8px; font: 500 48px var(--app-font-serif); }
+.admin-section-title p { max-width: 520px; margin: 0; color: #657773; }
+.inquiry-form { margin-bottom: 24px; }
+.inquiry-row { grid-template-columns: 80px minmax(0, 1fr) 110px auto; }
+.inquiry-kind { align-self: start; padding-top: 5px; color: #a96b48; font: 10px var(--app-font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.inquiry-row .admin-row-info small { display: block; max-width: 650px; margin-top: 5px; overflow: hidden; color: #657773; text-overflow: ellipsis; white-space: nowrap; }
+.inquiry-status-in_lucru { background: #d5e0d7; }
+.inquiry-status-finalizat { background: #c5d1ca; }
+.inquiry-status-arhivat { background: #dfe2dc; color: #657773; }
 @media (max-width: 680px) {
   .admin-title-row { display: grid; align-items: start; }
   .admin-form-grid { grid-template-columns: 1fr; }
@@ -636,6 +647,12 @@ body { background: #eee9df; color: #1e3935; }
   .admin-row-actions { grid-column: 3; grid-row: 1 / span 2; }
   .admin-list-head { grid-template-columns: 1fr auto; }
   .catalog-grid { grid-template-columns: 1fr; }
+  .admin-section-title { display: block; }
+  .admin-section-title .button { margin-top: 18px; }
+  .inquiry-row { grid-template-columns: 1fr auto; }
+  .inquiry-kind { grid-column: 1 / -1; }
+  .inquiry-row .admin-status { grid-column: 1; grid-row: 3; }
+  .inquiry-row .admin-row-actions { grid-column: 2; grid-row: 3; }
 }
 .split-feature { display: grid; grid-template-columns: .9fr 1.1fr; gap: 90px; align-items: center; }
 .feature-visual { position: relative; min-height: 590px; background: url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1300&q=85') center/cover; }

@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { InquiryStatus } from './inquiryStatus';
 
 export interface Inquiry {
   id: number;
@@ -16,5 +17,6 @@ export interface Inquiry {
   /** @nullable */
   propertySlug?: string | null;
   message: string;
+  status: InquiryStatus;
   createdAt: Date;
 }

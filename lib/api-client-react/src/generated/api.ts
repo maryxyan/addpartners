@@ -25,6 +25,7 @@ import type {
   HealthStatus,
   Inquiry,
   InquiryInput,
+  InquiryUpdate,
   ListPropertiesParams,
   Property,
   PropertyInput,
@@ -512,6 +513,83 @@ export const useDeleteProperty = <TError = ErrorType<void>,
       return useMutation(getDeletePropertyMutationOptions(options));
     }
 
+export const getListInquiriesUrl = () => {
+
+
+
+
+  return `/api/inquiries`
+}
+
+/**
+ * @summary List contact and acquisition inquiries
+ */
+export const listInquiries = async ( options?: Parameters<typeof customFetch>[1]): Promise<Inquiry[]> => {
+
+  return customFetch<Inquiry[]>(getListInquiriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInquiriesQueryKey = () => {
+    return [
+    `/api/inquiries`
+    ] as const;
+    }
+
+
+export const getListInquiriesQueryOptions = <TData = Awaited<ReturnType<typeof listInquiries>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInquiries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInquiriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInquiries>>> = ({ signal }) => listInquiries({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInquiries>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListInquiriesQueryResult = NonNullable<Awaited<ReturnType<typeof listInquiries>>>
+export type ListInquiriesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List contact and acquisition inquiries
+ */
+
+export function useListInquiries<TData = Awaited<ReturnType<typeof listInquiries>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInquiries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListInquiriesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getCreateInquiryUrl = () => {
 
 
@@ -581,6 +659,149 @@ export const useCreateInquiry = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreateInquiryMutationOptions(options));
+    }
+
+export const getUpdateInquiryUrl = (id: number,) => {
+
+
+
+
+  return `/api/inquiries/${id}`
+}
+
+/**
+ * @summary Update an inquiry
+ */
+export const updateInquiry = async (id: number,
+    inquiryUpdate: InquiryUpdate, options?: Parameters<typeof customFetch>[1]): Promise<Inquiry> => {
+
+  return customFetch<Inquiry>(getUpdateInquiryUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(inquiryUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateInquiryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInquiry>>, TError,{id: number;data: BodyType<InquiryUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateInquiry>>, TError,{id: number;data: BodyType<InquiryUpdate>}, TContext> => {
+
+const mutationKey = ['updateInquiry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateInquiry>>, {id: number;data: BodyType<InquiryUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateInquiry(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateInquiryMutationResult = NonNullable<Awaited<ReturnType<typeof updateInquiry>>>
+    export type UpdateInquiryMutationBody = BodyType<InquiryUpdate>
+    export type UpdateInquiryMutationError = ErrorType<void>
+
+    /**
+ * @summary Update an inquiry
+ */
+export const useUpdateInquiry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInquiry>>, TError,{id: number;data: BodyType<InquiryUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateInquiry>>,
+        TError,
+        {id: number;data: BodyType<InquiryUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateInquiryMutationOptions(options));
+    }
+
+export const getDeleteInquiryUrl = (id: number,) => {
+
+
+
+
+  return `/api/inquiries/${id}`
+}
+
+/**
+ * @summary Delete an inquiry
+ */
+export const deleteInquiry = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteInquiryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteInquiryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInquiry>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteInquiry>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteInquiry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteInquiry>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteInquiry(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteInquiryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteInquiry>>>
+
+    export type DeleteInquiryMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete an inquiry
+ */
+export const useDeleteInquiry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInquiry>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteInquiry>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteInquiryMutationOptions(options));
     }
 
 export const getRequestUploadUrlUrl = () => {

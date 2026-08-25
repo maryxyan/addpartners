@@ -132,6 +132,19 @@ paths:
         "404":
           description: Property not found
   /inquiries:
+    get:
+      operationId: listInquiries
+      tags: [inquiries]
+      summary: List contact and acquisition inquiries
+      responses:
+        "200":
+          description: Inquiries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Inquiry"
     post:
       operationId: createInquiry
       tags: [inquiries]
@@ -149,6 +162,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Inquiry"
+  /inquiries/{id}:
+    patch:
+      operationId: updateInquiry
+      tags: [inquiries]
+      summary: Update an inquiry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InquiryUpdate"
+      responses:
+        "200":
+          description: Updated inquiry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Inquiry"
+        "404":
+          description: Inquiry not found
+    delete:
+      operationId: deleteInquiry
+      tags: [inquiries]
+      summary: Delete an inquiry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "204":
+          description: Inquiry deleted
+        "404":
+          description: Inquiry not found
   /storage/uploads/request-url:
     post:
       tags: [Storage]
@@ -335,7 +387,7 @@ components:
         description: { type: string, minLength: 1 }
     Inquiry:
       type: object
-      required: [id, kind, name, contact, message, createdAt]
+      required: [id, kind, name, contact, message, status, createdAt]
       properties:
         id: { type: number }
         kind: { type: string }
@@ -344,6 +396,7 @@ components:
         location: { type: ["string", "null"] }
         propertySlug: { type: ["string", "null"] }
         message: { type: string }
+        status: { type: string, enum: [nou, in_lucru, finalizat, arhivat] }
         createdAt: { type: string, format: date-time }
     InquiryInput:
       type: object
@@ -355,6 +408,17 @@ components:
         location: { type: string }
         propertySlug: { type: string }
         message: { type: string, minLength: 1 }
+    InquiryUpdate:
+      type: object
+      required: [kind, name, contact, message, status]
+      properties:
+        kind: { type: string, enum: [contact, land] }
+        name: { type: string, minLength: 1 }
+        contact: { type: string, minLength: 1 }
+        location: { type: string }
+        propertySlug: { type: string }
+        message: { type: string, minLength: 1 }
+        status: { type: string, enum: [nou, in_lucru, finalizat, arhivat] }
     UploadUrlRequest:
       type: object
       required: [name, size, contentType]

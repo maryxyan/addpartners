@@ -5,10 +5,16 @@ import {
   type Property,
   type PropertyInput,
   type CatalogItem,
+  type Inquiry,
   getListPropertiesQueryKey,
   getListCatalogItemsQueryKey,
+  getListInquiriesQueryKey,
   useCreateProperty,
   useCreateCatalogItem,
+  useCreateInquiry,
+  useDeleteInquiry,
+  useListInquiries,
+  useUpdateInquiry,
   useDeleteProperty,
   useDeleteCatalogItem,
   useListCatalogItems,
@@ -239,6 +245,100 @@ function CatalogManager({ kind, title }: { kind: 'categories' | 'statuses'; titl
   );
 }
 
+type InquiryForm = {
+  kind: 'contact' | 'land';
+  name: string;
+  contact: string;
+  location: string;
+  propertySlug: string;
+  message: string;
+  status: 'nou' | 'in_lucru' | 'finalizat' | 'arhivat';
+};
+const emptyInquiry: InquiryForm = { kind: 'contact', name: '', contact: '', location: '', propertySlug: '', message: '', status: 'nou' };
+const inquiryStatuses = [
+  { value: 'nou', label: 'Nouă' },
+  { value: 'in_lucru', label: 'În lucru' },
+  { value: 'finalizat', label: 'Finalizată' },
+  { value: 'arhivat', label: 'Arhivată' },
+] as const;
+
+function InquiryManager() {
+  const [editing, setEditing] = useState<Inquiry | null>(null);
+  const [form, setForm] = useState<InquiryForm>({ ...emptyInquiry });
+  const [error, setError] = useState('');
+  const { data: inquiries = [], isLoading } = useListInquiries();
+  const createInquiry = useCreateInquiry();
+  const updateInquiry = useUpdateInquiry();
+  const deleteInquiry = useDeleteInquiry();
+  const queryClient = useQueryClient();
+  const close = () => { setEditing(null); setForm({ ...emptyInquiry }); setError(''); };
+  const startEdit = (inquiry: Inquiry) => {
+    setEditing(inquiry);
+    setForm({
+      kind: inquiry.kind === 'land' ? 'land' : 'contact',
+      name: inquiry.name,
+      contact: inquiry.contact,
+      location: inquiry.location ?? '',
+      propertySlug: inquiry.propertySlug ?? '',
+      message: inquiry.message,
+      status: inquiry.status as InquiryForm['status'],
+    });
+  };
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    const options = {
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListInquiriesQueryKey() }); close(); },
+      onError: () => setError('Cererea nu a putut fi salvată.'),
+    };
+    if (editing) updateInquiry.mutate({ id: editing.id, data: form }, options);
+    else createInquiry.mutate({ data: form }, options);
+  };
+  const remove = (inquiry: Inquiry) => {
+    if (!window.confirm(`Ștergi cererea de la „${inquiry.name}”? Această acțiune nu poate fi anulată.`)) return;
+    deleteInquiry.mutate({ id: inquiry.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListInquiriesQueryKey() }) });
+  };
+  const setField = (key: keyof InquiryForm, value: string) => setForm((current) => ({ ...current, [key]: value } as InquiryForm));
+
+  return (
+    <section className="admin-inquiries">
+      <div className="admin-section-title">
+        <div><div className="eyebrow">CRM intern</div><h2 className="display">Cereri.</h2><p>Gestionează solicitările primite de la proprietari, investitori și cumpărători.</p></div>
+        {!editing && <button className="button button-primary" onClick={() => { setForm({ ...emptyInquiry }); setEditing({ id: 0, ...emptyInquiry, createdAt: new Date().toISOString() }); }}><Plus size={15} /> Cerere nouă</button>}
+      </div>
+      {editing && (
+        <form className="admin-form inquiry-form" onSubmit={submit}>
+          <div className="admin-form-head"><div><div className="eyebrow">{editing.id ? 'Editare cerere' : 'Cerere nouă'}</div><h2 className="display">{editing.id ? editing.name : 'Adaugă un lead.'}</h2></div><button type="button" className="admin-icon-button" onClick={close}><X size={18} /></button></div>
+          <div className="admin-form-grid">
+            <label className="admin-field">Tip<select className="form-input" value={form.kind} onChange={(e) => setField('kind', e.target.value)}><option value="contact">Contact</option><option value="land">Achiziție teren</option></select></label>
+            <label className="admin-field">Status<select className="form-input" value={form.status} onChange={(e) => setField('status', e.target.value)}>{inquiryStatuses.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+            <label className="admin-field">Nume<input required className="form-input" value={form.name} onChange={(e) => setField('name', e.target.value)} /></label>
+            <label className="admin-field">Contact<input required className="form-input" value={form.contact} onChange={(e) => setField('contact', e.target.value)} /></label>
+            <label className="admin-field">Localizare<input className="form-input" value={form.location} onChange={(e) => setField('location', e.target.value)} /></label>
+            <label className="admin-field">Proprietate asociată<input className="form-input" value={form.propertySlug} onChange={(e) => setField('propertySlug', e.target.value)} /></label>
+            <label className="admin-field admin-field-wide">Mesaj<textarea required className="form-input" value={form.message} onChange={(e) => setField('message', e.target.value)} /></label>
+          </div>
+          {error && <p className="admin-error">{error}</p>}
+          <div className="admin-actions"><button type="button" className="button button-ghost" onClick={close}>Anulează</button><button type="submit" className="button button-primary"><Save size={15} /> Salvează cererea</button></div>
+        </form>
+      )}
+      <section className="admin-list inquiry-list">
+        <div className="admin-list-head"><span>{inquiries.length} cereri</span><span>Status</span></div>
+        {isLoading && <div className="admin-empty">Se încarcă cererile…</div>}
+        {!isLoading && inquiries.map((inquiry) => (
+          <div className="admin-row inquiry-row" key={inquiry.id}>
+            <div className="inquiry-kind">{inquiry.kind === 'land' ? 'Teren' : 'Contact'}</div>
+            <div className="admin-row-info"><strong>{inquiry.name}</strong><span>{inquiry.contact}{inquiry.location ? ` · ${inquiry.location}` : ''}</span><small>{inquiry.message}</small></div>
+            <span className={`admin-status inquiry-status-${inquiry.status}`}>{inquiryStatuses.find((item) => item.value === inquiry.status)?.label ?? inquiry.status}</span>
+            <div className="admin-row-actions"><button className="admin-icon-button" onClick={() => startEdit(inquiry)} aria-label={`Editează cererea de la ${inquiry.name}`}><Pencil size={16} /></button><button className="admin-icon-button danger" onClick={() => remove(inquiry)} aria-label={`Șterge cererea de la ${inquiry.name}`}><Trash2 size={16} /></button></div>
+          </div>
+        ))}
+        {!isLoading && inquiries.length === 0 && <div className="admin-empty">Nu există cereri încă.</div>}
+      </section>
+    </section>
+  );
+}
+
 export default function Admin() {
   const [editing, setEditing] = useState<Property | null>(null);
   const [creating, setCreating] = useState(false);
@@ -290,6 +390,7 @@ export default function Admin() {
         </div>
         {notice && <div className="admin-notice"><Check size={16} /> {notice}</div>}
         {(creating || editing) && <PropertyForm editing={editing} onCancel={closeForm} onSaved={handleSaved} />}
+        <InquiryManager />
         <div className="catalog-grid">
           <CatalogManager kind="categories" title="Categorii" />
           <CatalogManager kind="statuses" title="Statusuri" />

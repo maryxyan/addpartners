@@ -46,6 +46,7 @@ export const inquiriesTable = pgTable("inquiries", {
   location: text("location"),
   propertySlug: text("property_slug"),
   message: text("message").notNull(),
+  status: text("status").notNull().default("nou"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

@@ -52,6 +52,16 @@ export interface PropertyInput {
   description: string;
 }
 
+export type InquiryStatus = typeof InquiryStatus[keyof typeof InquiryStatus];
+
+
+export const InquiryStatus = {
+  nou: 'nou',
+  in_lucru: 'in_lucru',
+  finalizat: 'finalizat',
+  arhivat: 'arhivat',
+} as const;
+
 export interface Inquiry {
   id: number;
   kind: string;
@@ -62,6 +72,7 @@ export interface Inquiry {
   /** @nullable */
   propertySlug?: string | null;
   message: string;
+  status: InquiryStatus;
   createdAt: string;
 }
 
@@ -83,6 +94,37 @@ export interface InquiryInput {
   propertySlug?: string;
   /** @minLength 1 */
   message: string;
+}
+
+export type InquiryUpdateKind = typeof InquiryUpdateKind[keyof typeof InquiryUpdateKind];
+
+
+export const InquiryUpdateKind = {
+  contact: 'contact',
+  land: 'land',
+} as const;
+
+export type InquiryUpdateStatus = typeof InquiryUpdateStatus[keyof typeof InquiryUpdateStatus];
+
+
+export const InquiryUpdateStatus = {
+  nou: 'nou',
+  in_lucru: 'in_lucru',
+  finalizat: 'finalizat',
+  arhivat: 'arhivat',
+} as const;
+
+export interface InquiryUpdate {
+  kind: InquiryUpdateKind;
+  /** @minLength 1 */
+  name: string;
+  /** @minLength 1 */
+  contact: string;
+  location?: string;
+  propertySlug?: string;
+  /** @minLength 1 */
+  message: string;
+  status: InquiryUpdateStatus;
 }
 
 export interface UploadUrlRequest {

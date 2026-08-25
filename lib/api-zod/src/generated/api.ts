@@ -182,6 +182,23 @@ export const DeletePropertyResponse = zod.void()
 
 
 /**
+ * @summary List contact and acquisition inquiries
+ */
+export const ListInquiriesResponseItem = zod.object({
+  "id": zod.number(),
+  "kind": zod.string(),
+  "name": zod.string(),
+  "contact": zod.string(),
+  "location": zod.string().nullish(),
+  "propertySlug": zod.string().nullish(),
+  "message": zod.string(),
+  "status": zod.enum(['nou', 'in_lucru', 'finalizat', 'arhivat']),
+  "createdAt": zod.coerce.date()
+})
+export const ListInquiriesResponse = zod.array(ListInquiriesResponseItem)
+
+
+/**
  * @summary Save a contact or land acquisition inquiry
  */
 
@@ -206,8 +223,54 @@ export const CreateInquiryResponse = zod.object({
   "location": zod.string().nullish(),
   "propertySlug": zod.string().nullish(),
   "message": zod.string(),
+  "status": zod.enum(['nou', 'in_lucru', 'finalizat', 'arhivat']),
   "createdAt": zod.coerce.date()
 })
+
+
+/**
+ * @summary Update an inquiry
+ */
+export const UpdateInquiryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+
+export const UpdateInquiryBody = zod.object({
+  "kind": zod.enum(['contact', 'land']),
+  "name": zod.string().min(1),
+  "contact": zod.string().min(1),
+  "location": zod.string().optional(),
+  "propertySlug": zod.string().optional(),
+  "message": zod.string().min(1),
+  "status": zod.enum(['nou', 'in_lucru', 'finalizat', 'arhivat'])
+})
+
+export const UpdateInquiryResponse = zod.object({
+  "id": zod.number(),
+  "kind": zod.string(),
+  "name": zod.string(),
+  "contact": zod.string(),
+  "location": zod.string().nullish(),
+  "propertySlug": zod.string().nullish(),
+  "message": zod.string(),
+  "status": zod.enum(['nou', 'in_lucru', 'finalizat', 'arhivat']),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete an inquiry
+ */
+export const DeleteInquiryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteInquiryResponse = zod.void()
 
 
 /**
