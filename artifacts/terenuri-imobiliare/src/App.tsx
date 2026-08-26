@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
+  ChevronUp,
   Menu,
   MapPin,
   X,
@@ -39,6 +40,7 @@ function Home() {
   const [typeFilter, setTypeFilter] = useState('Toate tipurile');
   const [modal, setModal] = useState<'contact' | 'land' | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [openService, setOpenService] = useState<string | null>(null);
   const createInquiry = useCreateInquiry();
 
   const navItems = [
@@ -284,10 +286,22 @@ function Home() {
                   ['03', 'Structurare proiecte', 'Transformăm o oportunitate imobiliară într-un proiect viabil și investibil.'],
                   ['04', 'Dezvoltare imobiliară', 'De la concept și autorizare până la un proiect care funcționează.'],
                 ].map(([number, title, description]) => (
-                  <div className="service-row" key={number}>
+                  <div className={`service-row ${openService === number ? 'is-open' : ''}`} key={number}>
                     <span>{number}</span>
-                    <div><strong>{title}</strong><div style={{ color: '#657773', fontSize: 12, marginTop: 5 }}>{description}</div></div>
-                    <ChevronDown size={15} />
+                    <div>
+                      <strong>{title}</strong>
+                      <div className="service-description" id={`service-description-${number}`} aria-hidden={openService !== number}>{description}</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="service-toggle"
+                      aria-label={`${openService === number ? 'Închide' : 'Deschide'} detalii pentru ${title}`}
+                      aria-expanded={openService === number}
+                      aria-controls={`service-description-${number}`}
+                      onClick={() => setOpenService(openService === number ? null : number)}
+                    >
+                      {openService === number ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                    </button>
                   </div>
                 ))}
               </div>
