@@ -25,6 +25,35 @@ import {
 } from '@workspace/api-client-react';
 import { Link } from 'wouter';
 
+function DeleteConfirmModal({
+  label,
+  onCancel,
+  onConfirm,
+  isDeleting,
+}: {
+  label: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  isDeleting?: boolean;
+}) {
+  return (
+    <div className="delete-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onCancel(); }}>
+      <div className="delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-modal-title">
+        <div className="delete-modal-icon"><Trash2 size={20} /></div>
+        <div>
+          <div className="eyebrow">Confirmare</div>
+          <h2 id="delete-modal-title">Ștergi acest element?</h2>
+          <p>Elementul <strong>„{label}”</strong> va fi eliminat definitiv. Această acțiune nu poate fi anulată.</p>
+        </div>
+        <div className="delete-modal-actions">
+          <button type="button" className="button button-ghost" onClick={onCancel} disabled={isDeleting}>Anulează</button>
+          <button type="button" className="button button-danger" onClick={onConfirm} disabled={isDeleting}>{isDeleting ? 'Se șterge…' : <><Trash2 size={15} /> Șterge definitiv</>}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const emptyForm: PropertyInput = {
   slug: '',
   title: '',
@@ -180,6 +209,7 @@ function PropertyForm({
 
 function CatalogManager({ kind, title }: { kind: 'categories' | 'statuses'; title: string }) {
   const [editing, setEditing] = useState<CatalogItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CatalogItem | null>(null);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const { data: items = [], isLoading } = useListCatalogItems(kind);
@@ -206,9 +236,8 @@ function CatalogManager({ kind, title }: { kind: 'categories' | 'statuses'; titl
     else createItem.mutate({ kind, data }, options);
   };
   const remove = (item: CatalogItem) => {
-    if (!window.confirm(`Ștergi „${item.name}”? Proprietățile existente nu vor fi modificate automat.`)) return;
     deleteItem.mutate({ kind, id: item.id }, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListCatalogItemsQueryKey(kind) }),
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListCatalogItemsQueryKey(kind) }); setDeleteTarget(null); },
       onError: () => setError('Elementul nu a putut fi șters.'),
     });
   };
@@ -236,11 +265,12 @@ function CatalogManager({ kind, title }: { kind: 'categories' | 'statuses'; titl
             ) : <><span>{item.name}</span><small>{item.slug}</small></>}
             <div className="catalog-item-actions">
               <button className="admin-icon-button" onClick={() => { setEditing(item); setName(item.name); }} aria-label={`Editează ${item.name}`}><Pencil size={13} /></button>
-              <button className="admin-icon-button danger" onClick={() => remove(item)} aria-label={`Șterge ${item.name}`}><Trash2 size={13} /></button>
+              <button className="admin-icon-button danger" onClick={() => setDeleteTarget(item)} aria-label={`Șterge ${item.name}`}><Trash2 size={13} /></button>
             </div>
           </div>
         ))}
       </div>
+      {deleteTarget && <DeleteConfirmModal label={deleteTarget.name} onCancel={() => setDeleteTarget(null)} onConfirm={() => remove(deleteTarget)} isDeleting={deleteItem.isPending} />}
     </section>
   );
 }
@@ -264,6 +294,7 @@ const inquiryStatuses = [
 
 function InquiryManager() {
   const [editing, setEditing] = useState<Inquiry | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Inquiry | null>(null);
   const [form, setForm] = useState<InquiryForm>({ ...emptyInquiry });
   const [error, setError] = useState('');
   const { data: inquiries = [], isLoading } = useListInquiries();
@@ -291,12 +322,14 @@ function InquiryManager() {
       onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListInquiriesQueryKey() }); close(); },
       onError: () => setError('Cererea nu a putut fi salvată.'),
     };
-    if (editing) updateInquiry.mutate({ id: editing.id, data: form }, options);
+    if (editing?.id) updateInquiry.mutate({ id: editing.id, data: form }, options);
     else createInquiry.mutate({ data: form }, options);
   };
   const remove = (inquiry: Inquiry) => {
-    if (!window.confirm(`Ștergi cererea de la „${inquiry.name}”? Această acțiune nu poate fi anulată.`)) return;
-    deleteInquiry.mutate({ id: inquiry.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListInquiriesQueryKey() }) });
+    deleteInquiry.mutate({ id: inquiry.id }, {
+      onSuccess: () => { queryClient.invalidateQueries({ queryKey: getListInquiriesQueryKey() }); setDeleteTarget(null); },
+      onError: () => setError('Cererea nu a putut fi ștearsă.'),
+    });
   };
   const setField = (key: keyof InquiryForm, value: string) => setForm((current) => ({ ...current, [key]: value } as InquiryForm));
 
@@ -330,17 +363,19 @@ function InquiryManager() {
             <div className="inquiry-kind">{inquiry.kind === 'land' ? 'Teren' : 'Contact'}</div>
             <div className="admin-row-info"><strong>{inquiry.name}</strong><span>{inquiry.contact}{inquiry.location ? ` · ${inquiry.location}` : ''}</span><small>{inquiry.message}</small></div>
             <span className={`admin-status inquiry-status-${inquiry.status}`}>{inquiryStatuses.find((item) => item.value === inquiry.status)?.label ?? inquiry.status}</span>
-            <div className="admin-row-actions"><button className="admin-icon-button" onClick={() => startEdit(inquiry)} aria-label={`Editează cererea de la ${inquiry.name}`}><Pencil size={16} /></button><button className="admin-icon-button danger" onClick={() => remove(inquiry)} aria-label={`Șterge cererea de la ${inquiry.name}`}><Trash2 size={16} /></button></div>
+            <div className="admin-row-actions"><button className="admin-icon-button" onClick={() => startEdit(inquiry)} aria-label={`Editează cererea de la ${inquiry.name}`}><Pencil size={16} /></button><button className="admin-icon-button danger" onClick={() => setDeleteTarget(inquiry)} aria-label={`Șterge cererea de la ${inquiry.name}`}><Trash2 size={16} /></button></div>
           </div>
         ))}
         {!isLoading && inquiries.length === 0 && <div className="admin-empty">Nu există cereri încă.</div>}
       </section>
+      {deleteTarget && <DeleteConfirmModal label={deleteTarget.name} onCancel={() => setDeleteTarget(null)} onConfirm={() => remove(deleteTarget)} isDeleting={deleteInquiry.isPending} />}
     </section>
   );
 }
 
 export default function Admin() {
   const [editing, setEditing] = useState<Property | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Property | null>(null);
   const [creating, setCreating] = useState(false);
   const [notice, setNotice] = useState('');
   const { data: properties = [], isLoading, isError } = useListProperties();
@@ -359,11 +394,11 @@ export default function Admin() {
   };
 
   const handleDelete = (property: Property) => {
-    if (!window.confirm(`Ștergi proprietatea „${property.title}”? Această acțiune nu poate fi anulată.`)) return;
     deleteProperty.mutate({ slug: property.slug }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListPropertiesQueryKey() });
         setNotice('Proprietatea a fost ștearsă.');
+        setDeleteTarget(null);
       },
     });
   };
@@ -410,12 +445,13 @@ export default function Admin() {
               <span className="admin-status">{property.status}</span>
               <div className="admin-row-actions">
                 <button className="admin-icon-button" onClick={() => { setEditing(property); setCreating(false); }} aria-label={`Editează ${property.title}`}><Pencil size={16} /></button>
-                <button className="admin-icon-button danger" onClick={() => handleDelete(property)} aria-label={`Șterge ${property.title}`}><Trash2 size={16} /></button>
+                <button className="admin-icon-button danger" onClick={() => setDeleteTarget(property)} aria-label={`Șterge ${property.title}`}><Trash2 size={16} /></button>
               </div>
             </div>
           ))}
           {!isLoading && !isError && properties.length === 0 && <div className="admin-empty">Nu există proprietăți. Adaugă prima oportunitate.</div>}
         </section>
+        {deleteTarget && <DeleteConfirmModal label={deleteTarget.title} onCancel={() => setDeleteTarget(null)} onConfirm={() => handleDelete(deleteTarget)} isDeleting={deleteProperty.isPending} />}
       </main>
     </div>
   );
