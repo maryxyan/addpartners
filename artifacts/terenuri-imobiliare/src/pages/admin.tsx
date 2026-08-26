@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Check, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import {
@@ -99,6 +99,11 @@ function PropertyForm({
   const { data: statuses = [] } = useListCatalogItems('statuses');
   const queryClient = useQueryClient();
   const isSaving = createProperty.isPending || updateProperty.isPending;
+
+  useEffect(() => {
+    setForm(editing ? { ...editing } : { ...emptyForm });
+    setError('');
+  }, [editing]);
 
   const updateField = (key: keyof PropertyInput, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -424,7 +429,7 @@ export default function Admin() {
           {!creating && !editing && <button className="button button-primary" onClick={() => setCreating(true)}><Plus size={16} /> Proprietate nouă</button>}
         </div>
         {notice && <div className="admin-notice"><Check size={16} /> {notice}</div>}
-        {(creating || editing) && <PropertyForm editing={editing} onCancel={closeForm} onSaved={handleSaved} />}
+        {(creating || editing) && <PropertyForm key={editing?.id ?? 'new'} editing={editing} onCancel={closeForm} onSaved={handleSaved} />}
         <InquiryManager />
         <div className="catalog-grid">
           <CatalogManager kind="categories" title="Categorii" />
@@ -444,8 +449,8 @@ export default function Admin() {
               </div>
               <span className="admin-status">{property.status}</span>
               <div className="admin-row-actions">
-                <button className="admin-icon-button" onClick={() => { setEditing(property); setCreating(false); }} aria-label={`Editează ${property.title}`}><Pencil size={16} /></button>
-                <button className="admin-icon-button danger" onClick={() => setDeleteTarget(property)} aria-label={`Șterge ${property.title}`}><Trash2 size={16} /></button>
+                <button type="button" className="admin-icon-button" onClick={() => { setCreating(false); setEditing(property); }} aria-label={`Editează ${property.title}`}><Pencil size={16} /></button>
+                <button type="button" className="admin-icon-button danger" onClick={() => setDeleteTarget(property)} aria-label={`Șterge ${property.title}`}><Trash2 size={16} /></button>
               </div>
             </div>
           ))}
