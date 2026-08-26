@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Check, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import {
@@ -92,6 +92,7 @@ function PropertyForm({
   const [form, setForm] = useState<PropertyInput>(editing ? { ...editing } : emptyForm);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const requestUploadUrl = useRequestUploadUrl();
@@ -103,6 +104,9 @@ function PropertyForm({
   useEffect(() => {
     setForm(editing ? { ...editing } : { ...emptyForm });
     setError('');
+    window.requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }, [editing]);
 
   const updateField = (key: keyof PropertyInput, value: string) => {
@@ -160,7 +164,7 @@ function PropertyForm({
   };
 
   return (
-    <form className="admin-form" onSubmit={submit}>
+    <form ref={formRef} className="admin-form property-edit-form" onSubmit={submit}>
       <div className="admin-form-head">
         <div>
           <div className="eyebrow">{editing ? 'Editare proprietate' : 'Proprietate nouă'}</div>
