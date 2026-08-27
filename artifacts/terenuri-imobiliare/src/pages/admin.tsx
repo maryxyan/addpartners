@@ -387,7 +387,9 @@ export default function Admin() {
   const [deleteTarget, setDeleteTarget] = useState<Property | null>(null);
   const [creating, setCreating] = useState(false);
   const [notice, setNotice] = useState('');
-  const { data: properties = [], isLoading, isError } = useListProperties();
+  const { data: propertiesResponse, isLoading, isError } = useListProperties();
+  const properties = Array.isArray(propertiesResponse) ? propertiesResponse : [];
+  const hasInvalidResponse = !isLoading && !Array.isArray(propertiesResponse);
   const deleteProperty = useDeleteProperty();
   const queryClient = useQueryClient();
 
@@ -417,8 +419,7 @@ export default function Admin() {
       <header className="admin-header">
         <div className="container-wide admin-header-inner">
           <Link href="/" className="brand">
-            <span className="brand-mark"><span>AP</span></span>
-            <span className="brand-name">ADD<br /><small>Partners</small></span>
+            <img className="brand-logo" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" />
           </Link>
           <Link href="/" className="admin-back"><ArrowLeft size={15} /> Vezi website-ul</Link>
         </div>
@@ -442,8 +443,8 @@ export default function Admin() {
         <section className="admin-list">
           <div className="admin-list-head"><span>{properties.length} proprietăți</span><span>Status publicare</span></div>
           {isLoading && <div className="admin-empty">Se încarcă proprietățile…</div>}
-          {isError && <div className="admin-empty admin-error">Lista nu a putut fi încărcată.</div>}
-          {!isLoading && !isError && properties.map((property) => (
+          {(isError || hasInvalidResponse) && <div className="admin-empty admin-error">Lista nu a putut fi încărcată.</div>}
+          {!isLoading && !isError && !hasInvalidResponse && properties.map((property) => (
             <div className="admin-row" key={property.id}>
               <div className="admin-row-image" style={{ backgroundImage: `url(${property.image})` }} />
               <div className="admin-row-info">
@@ -458,7 +459,7 @@ export default function Admin() {
               </div>
             </div>
           ))}
-          {!isLoading && !isError && properties.length === 0 && <div className="admin-empty">Nu există proprietăți. Adaugă prima oportunitate.</div>}
+          {!isLoading && !isError && !hasInvalidResponse && properties.length === 0 && <div className="admin-empty">Nu există proprietăți. Adaugă prima oportunitate.</div>}
         </section>
         {deleteTarget && <DeleteConfirmModal label={deleteTarget.title} onCancel={() => setDeleteTarget(null)} onConfirm={() => handleDelete(deleteTarget)} isDeleting={deleteProperty.isPending} />}
       </main>

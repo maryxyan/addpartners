@@ -53,7 +53,14 @@ function Home() {
     ['Despre noi', 'despre-noi'],
   ];
 
-  const { data: properties = [], isLoading: propertiesLoading } = useListProperties();
+  const {
+    data: propertiesResponse,
+    isLoading: propertiesLoading,
+    isError: propertiesError,
+  } = useListProperties();
+  // Without an API proxy Vite can return its HTML fallback for this request.
+  // Do not let an unexpected response shape crash the entire page.
+  const properties = Array.isArray(propertiesResponse) ? propertiesResponse : [];
 
   const filteredProperties =
     filter === 'Toate'
@@ -106,8 +113,7 @@ function Home() {
       <header className="header">
         <div className="container-wide header-inner">
           <a href="#acasa" className="brand" onClick={() => setMobileOpen(false)} data-testid="link-brand">
-            <span className="brand-mark"><span>AP</span></span>
-            <span className="brand-name">ADD<br /><small>Partners</small></span>
+            <img className="brand-logo" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" />
           </a>
           <nav className="nav-links" aria-label="Navigație principală">
             {navItems.map(([label, id]) => (
@@ -242,6 +248,8 @@ function Home() {
             </div>
             {propertiesLoading ? (
               <div className="empty-state">Se încarcă oportunitățile disponibile…</div>
+            ) : propertiesError || !Array.isArray(propertiesResponse) ? (
+              <div className="empty-state">Oportunitățile nu au putut fi încărcate. Porniți serviciul API și reîncercați.</div>
             ) : visibleProperties.length > 0 ? (
               <div className="property-grid">
                 {visibleProperties.map((property) => (
@@ -305,9 +313,9 @@ function Home() {
                   </div>
                 ))}
               </div>
-              <button className="button button-primary" onClick={() => openModal('contact')} data-testid="button-discuss-services">
+              <a className="button button-primary" href="#proprietati" onClick={() => scrollTo('proprietati')} data-testid="button-discuss-services">
                 Vezi proprietățile disponibile <ArrowUpRight size={15} />
-              </button>
+              </a>
             </div>
           </div>
         </section>
@@ -441,14 +449,14 @@ function Home() {
         <div className="container-wide">
           <div className="footer-top">
             <div>
-              <a href="#acasa" className="brand" data-testid="link-footer-brand"><span className="brand-mark"><span>AP</span></span><span className="brand-name">ADD<br /><small>Partners</small></span></a>
+              <a href="#acasa" className="brand" data-testid="link-footer-brand"><img className="brand-logo brand-logo-footer" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" /></a>
               <p className="footer-blurb">Identificăm potențialul. Îl transformăm în locuri care contează.</p>
             </div>
             <div><h3>Explorați</h3><a href="#proprietati" data-testid="link-footer-properties">Proprietăți</a><a href="#servicii" data-testid="link-footer-services">Servicii</a><a href="#achizitii">Achiziții terenuri</a><a href="#dezvoltari">Dezvoltări</a><a href="#proiecte" data-testid="link-footer-projects">Proiecte</a></div>
             <div><h3>Conectare</h3><a href="mailto:contact@addpartners.ro" data-testid="link-footer-email">contact@addpartners.ro</a><a href="tel:+40213140000" data-testid="link-footer-phone">+40 21 314 00 00</a><a href="#contact" onClick={() => openModal('contact')} data-testid="link-footer-form">Formular contact</a></div>
             <div><h3>Ne găsiți</h3><p>Str. Plantelor 27<br />București, România<br /><br />Luni — Vineri<br />09:00 — 18:00</p></div>
           </div>
-          <div className="footer-bottom"><span>© 2024 ADD Partners</span><span>Claritate înainte de angajament</span></div>
+          <div className="footer-bottom"><span>© 2026 ADD Partners</span><span>Claritate înainte de angajament</span></div>
         </div>
       </footer>
 
@@ -492,8 +500,7 @@ function PropertyDetail() {
       <header className="header detail-header">
         <div className="container-wide header-inner">
           <a href={import.meta.env.BASE_URL} className="brand" data-testid="link-detail-brand">
-            <span className="brand-mark"><span>AP</span></span>
-            <span className="brand-name">ADD<br /><small>Partners</small></span>
+            <img className="brand-logo" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" />
           </a>
           <a className="header-contact" href={`${import.meta.env.BASE_URL}#contact`}>Discutăm o oportunitate <ArrowUpRight size={15} /></a>
         </div>

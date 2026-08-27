@@ -1,142 +1,91 @@
-import { Readable } from 'stream';
+import { randomUUID } from 'node:crypto';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import {
   RequestUploadUrlBody,
   RequestUploadUrlResponse,
 } from '@workspace/api-zod';
 import { Router, type IRouter, type Request, type Response } from 'express';
 
-import { ObjectPermission } from '../lib/objectAcl';
-import {
-  ObjectNotFoundError,
-  ObjectStorageService,
-} from '../lib/objectStorage';
-
 const router: IRouter = Router();
-const objectStorageService = new ObjectStorageService();
+const uploadDirectory = path.resolve(
+  process.env.UPLOAD_DIR ?? path.join(process.cwd(), 'uploads'),
+);
+const allowedContentTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const maximumUploadSize = 10 * 1024 * 1024;
 
-/**
- * POST /storage/uploads/request-url
- *
- * Request a presigned URL for file upload.
- * The client sends JSON metadata (name, size, contentType) — NOT the file.
- * Then uploads the file directly to the returned presigned URL.
- * Requires auth middleware so public callers cannot mint write-capable URLs.
- */
-router.post(
-  '/storage/uploads/request-url',
-  async (req: Request, res: Response) => {
-    const parsed = RequestUploadUrlBody.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: 'Missing or invalid required fields' });
+function safeObjectId(value: string): string | null {
+  return /^[0-9a-f-]{36}$/i.test(value) ? value : null;
+}
+
+router.post('/storage/uploads/request-url', (req: Request, res: Response) => {
+  const parsed = RequestUploadUrlBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Missing or invalid required fields' });
+    return;
+  }
+
+  const { name, size, contentType } = parsed.data;
+  if (size > maximumUploadSize || !allowedContentTypes.has(contentType)) {
+    res.status(400).json({ error: 'Unsupported image or file is too large' });
+    return;
+  }
+
+  const objectId = randomUUID();
+  res.json(RequestUploadUrlResponse.parse({
+    uploadURL: `/api/storage/uploads/${objectId}`,
+    objectPath: `/objects/${objectId}`,
+    metadata: { name, size, contentType },
+  }));
+});
+
+router.put('/storage/uploads/:objectId', async (req: Request, res: Response) => {
+  const rawObjectId = req.params.objectId;
+  const objectId = safeObjectId(
+    Array.isArray(rawObjectId) ? rawObjectId.join('') : rawObjectId,
+  );
+  const contentType = req.headers['content-type']?.split(';')[0];
+  if (!objectId || !contentType || !allowedContentTypes.has(contentType)) {
+    res.status(400).json({ error: 'Invalid upload' });
+    return;
+  }
+
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    size += buffer.length;
+    if (size > maximumUploadSize) {
+      res.status(413).json({ error: 'File is too large' });
       return;
     }
+    chunks.push(buffer);
+  }
 
-    try {
-      const { name, size, contentType } = parsed.data;
+  await mkdir(uploadDirectory, { recursive: true });
+  await writeFile(path.join(uploadDirectory, objectId), Buffer.concat(chunks));
+  await writeFile(path.join(uploadDirectory, `${objectId}.json`), JSON.stringify({ contentType }));
+  res.status(204).end();
+});
 
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      const objectPath =
-        objectStorageService.normalizeObjectEntityPath(uploadURL);
-
-      res.json(
-        RequestUploadUrlResponse.parse({
-          uploadURL,
-          objectPath,
-          metadata: { name, size, contentType },
-        }),
-      );
-    } catch (error) {
-      req.log.error({ err: error }, 'Error generating upload URL');
-      res.status(500).json({ error: 'Failed to generate upload URL' });
-    }
-  },
-);
-
-/**
- * GET /storage/public-objects/*
- *
- * Serve public assets from PUBLIC_OBJECT_SEARCH_PATHS.
- * These are unconditionally public — no authentication or ACL checks.
- * IMPORTANT: Always provide this endpoint when object storage is set up.
- */
-router.get(
-  '/storage/public-objects/*filePath',
-  async (req: Request, res: Response) => {
-    try {
-      const raw = req.params.filePath;
-      const filePath = Array.isArray(raw) ? raw.join('/') : raw;
-      const file = await objectStorageService.searchPublicObject(filePath);
-      if (!file) {
-        res.status(404).json({ error: 'File not found' });
-        return;
-      }
-
-      const response = await objectStorageService.downloadObject(file);
-
-      res.status(response.status);
-      response.headers.forEach((value, key) => res.setHeader(key, value));
-
-      if (response.body) {
-        const nodeStream = Readable.fromWeb(
-          response.body as ReadableStream<Uint8Array>,
-        );
-        nodeStream.pipe(res);
-      } else {
-        res.end();
-      }
-    } catch (error) {
-      req.log.error({ err: error }, 'Error serving public object');
-      res.status(500).json({ error: 'Failed to serve public object' });
-    }
-  },
-);
-
-/**
- * GET /storage/objects/*
- *
- * Serve object entities from PRIVATE_OBJECT_DIR.
- * These are served from a separate path from /public-objects and can optionally
- * be protected with authentication or ACL checks based on the use case.
- */
 router.get('/storage/objects/*path', async (req: Request, res: Response) => {
+  const raw = req.params.path;
+  const objectId = safeObjectId(Array.isArray(raw) ? raw.join('/') : raw);
+  if (!objectId) {
+    res.status(404).json({ error: 'Object not found' });
+    return;
+  }
+
   try {
-    const raw = req.params.path;
-    const wildcardPath = Array.isArray(raw) ? raw.join('/') : raw;
-    const objectPath = `/objects/${wildcardPath}`;
-    const objectFile =
-      await objectStorageService.getObjectEntityFile(objectPath);
-
-    // --- Protected route example (uncomment when using replit-auth) ---
-    // if (!req.isAuthenticated()) {
-    //   res.status(401).json({ error: "Unauthorized" });
-    //   return;
-    // }
-    // const canAccess = await objectStorageService.canAccessObjectEntity({
-    //   userId: req.user.id,
-    //   objectFile,
-    //   requestedPermission: ObjectPermission.READ,
-    // });
-    // if (!canAccess) {
-    //   res.status(403).json({ error: "Forbidden" });
-    //   return;
-    // }
-
-    const response = await objectStorageService.downloadObject(objectFile);
-
-    res.status(response.status);
-    response.headers.forEach((value, key) => res.setHeader(key, value));
-
-    if (response.body) {
-      const nodeStream = Readable.fromWeb(
-        response.body as ReadableStream<Uint8Array>,
-      );
-      nodeStream.pipe(res);
-    } else {
-      res.end();
-    }
+    const metadata = JSON.parse(
+      await readFile(path.join(uploadDirectory, `${objectId}.json`), 'utf8'),
+    ) as { contentType?: string };
+    const file = await readFile(path.join(uploadDirectory, objectId));
+    res.setHeader('Content-Type', metadata.contentType ?? 'application/octet-stream');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(file);
   } catch (error) {
-    if (error instanceof ObjectNotFoundError) {
-      req.log.warn({ err: error }, 'Object not found');
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       res.status(404).json({ error: 'Object not found' });
       return;
     }
