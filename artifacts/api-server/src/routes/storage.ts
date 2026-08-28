@@ -6,6 +6,7 @@ import {
   RequestUploadUrlResponse,
 } from '@workspace/api-zod';
 import { Router, type IRouter, type Request, type Response } from 'express';
+import { requireAdmin } from '../middleware/admin-auth';
 
 const router: IRouter = Router();
 const uploadDirectory = path.resolve(
@@ -18,7 +19,7 @@ function safeObjectId(value: string): string | null {
   return /^[0-9a-f-]{36}$/i.test(value) ? value : null;
 }
 
-router.post('/storage/uploads/request-url', (req: Request, res: Response) => {
+router.post('/storage/uploads/request-url', requireAdmin, (req: Request, res: Response) => {
   const parsed = RequestUploadUrlBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: 'Missing or invalid required fields' });
@@ -39,7 +40,7 @@ router.post('/storage/uploads/request-url', (req: Request, res: Response) => {
   }));
 });
 
-router.put('/storage/uploads/:objectId', async (req: Request, res: Response) => {
+router.put('/storage/uploads/:objectId', requireAdmin, async (req: Request, res: Response) => {
   const rawObjectId = req.params.objectId;
   const objectId = safeObjectId(
     Array.isArray(rawObjectId) ? rawObjectId.join('') : rawObjectId,

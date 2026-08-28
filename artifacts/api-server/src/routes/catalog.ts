@@ -13,6 +13,7 @@ import {
   propertyCategoriesTable,
   propertyStatusesTable,
 } from "@workspace/db";
+import { requireAdmin } from "../middleware/admin-auth";
 
 const router: IRouter = Router();
 const validKinds = ["categories", "statuses"] as const;
@@ -39,7 +40,7 @@ router.get("/catalog/:kind", async (req, res, next): Promise<void> => {
   }
 });
 
-router.post("/catalog/:kind", async (req, res, next): Promise<void> => {
+router.post("/catalog/:kind", requireAdmin, async (req, res, next): Promise<void> => {
   try {
     const params = CreateCatalogItemParams.safeParse(req.params);
     const body = CreateCatalogItemBody.safeParse(req.body);
@@ -57,7 +58,7 @@ router.post("/catalog/:kind", async (req, res, next): Promise<void> => {
   }
 });
 
-router.patch("/catalog/:kind/:id", async (req, res, next): Promise<void> => {
+router.patch("/catalog/:kind/:id", requireAdmin, async (req, res, next): Promise<void> => {
   try {
     const params = UpdateCatalogItemParams.safeParse(req.params);
     const body = UpdateCatalogItemBody.safeParse(req.body);
@@ -79,7 +80,7 @@ router.patch("/catalog/:kind/:id", async (req, res, next): Promise<void> => {
   }
 });
 
-router.delete("/catalog/:kind/:id", async (req, res, next): Promise<void> => {
+router.delete("/catalog/:kind/:id", requireAdmin, async (req, res, next): Promise<void> => {
   try {
     const params = DeleteCatalogItemParams.safeParse(req.params);
     const kind = getKind(params.success ? params.data.kind : null);

@@ -160,7 +160,7 @@ function Home() {
                 <a className="button button-primary" href="#proprietati" onClick={() => scrollTo('proprietati')} data-testid="button-view-properties">
                   Vezi proprietățile <ArrowUpRight size={15} />
                 </a>
-                <button className="button button-ghost" onClick={() => openModal('land')} data-testid="button-propose-land">
+                <button className="button button-land-cta" onClick={() => openModal('land')} data-testid="button-propose-land">
                   Propune un teren <ArrowRight size={15} />
                 </button>
               </div>

@@ -2,10 +2,11 @@ import { Router, type IRouter } from "express";
 import { eq, desc } from "drizzle-orm";
 import { CreateInquiryBody, DeleteInquiryParams, UpdateInquiryBody, UpdateInquiryParams } from "@workspace/api-zod";
 import { db, inquiriesTable } from "@workspace/db";
+import { requireAdmin } from "../middleware/admin-auth";
 
 const router: IRouter = Router();
 
-router.get("/inquiries", async (_req, res, next) => {
+router.get("/inquiries", requireAdmin, async (_req, res, next) => {
   try {
     res.json(await db.select().from(inquiriesTable).orderBy(desc(inquiriesTable.createdAt)));
   } catch (error) {
@@ -26,7 +27,7 @@ router.post("/inquiries", async (req, res, next) => {
   }
 });
 
-router.patch("/inquiries/:id", async (req, res, next): Promise<void> => {
+router.patch("/inquiries/:id", requireAdmin, async (req, res, next): Promise<void> => {
   try {
     const params = UpdateInquiryParams.parse(req.params);
     const input = UpdateInquiryBody.parse(req.body);
@@ -41,7 +42,7 @@ router.patch("/inquiries/:id", async (req, res, next): Promise<void> => {
   }
 });
 
-router.delete("/inquiries/:id", async (req, res, next): Promise<void> => {
+router.delete("/inquiries/:id", requireAdmin, async (req, res, next): Promise<void> => {
   try {
     const params = DeleteInquiryParams.parse(req.params);
     const [inquiry] = await db.delete(inquiriesTable).where(eq(inquiriesTable.id, params.id)).returning({ id: inquiriesTable.id });

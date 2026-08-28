@@ -1,6 +1,15 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 
+if (process.env.NODE_ENV === "production") {
+  for (const name of ["DATABASE_URL", "FRONTEND_ORIGIN", "ADMIN_PASSWORD", "SESSION_SECRET"] as const) {
+    if (!process.env[name]) throw new Error(`${name} environment variable is required in production`);
+  }
+  if ((process.env.SESSION_SECRET?.length ?? 0) < 32) {
+    throw new Error("SESSION_SECRET must contain at least 32 characters");
+  }
+}
+
 const rawPort = process.env["API_PORT"] ?? process.env["PORT"];
 
 if (!rawPort) {

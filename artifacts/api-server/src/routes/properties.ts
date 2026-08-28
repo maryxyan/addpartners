@@ -5,6 +5,7 @@ import {
   ListPropertiesQueryParams,
 } from "@workspace/api-zod";
 import { db, propertiesTable } from "@workspace/db";
+import { requireAdmin } from "../middleware/admin-auth";
 
 const router: IRouter = Router();
 
@@ -47,7 +48,7 @@ router.get("/properties/:slug", async (req, res, next) => {
   }
 });
 
-router.post("/properties", async (req, res, next) => {
+router.post("/properties", requireAdmin, async (req, res, next) => {
   try {
     const input = CreatePropertyBody.parse(req.body);
     const [property] = await db
@@ -60,13 +61,14 @@ router.post("/properties", async (req, res, next) => {
   }
 });
 
-router.patch("/properties/:slug", async (req, res, next) => {
+router.patch("/properties/:slug", requireAdmin, async (req, res, next) => {
   try {
     const input = CreatePropertyBody.parse(req.body);
+    const slug = Array.isArray(req.params.slug) ? req.params.slug.join("") : req.params.slug;
     const [property] = await db
       .update(propertiesTable)
       .set(input)
-      .where(eq(propertiesTable.slug, req.params.slug))
+      .where(eq(propertiesTable.slug, slug))
       .returning();
 
     if (!property) {
@@ -80,11 +82,12 @@ router.patch("/properties/:slug", async (req, res, next) => {
   }
 });
 
-router.delete("/properties/:slug", async (req, res, next) => {
+router.delete("/properties/:slug", requireAdmin, async (req, res, next) => {
   try {
+    const slug = Array.isArray(req.params.slug) ? req.params.slug.join("") : req.params.slug;
     const [property] = await db
       .delete(propertiesTable)
-      .where(eq(propertiesTable.slug, req.params.slug))
+      .where(eq(propertiesTable.slug, slug))
       .returning({ id: propertiesTable.id });
 
     if (!property) {

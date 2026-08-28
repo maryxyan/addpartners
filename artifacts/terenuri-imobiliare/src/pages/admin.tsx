@@ -133,11 +133,14 @@ function PropertyForm({
       });
       const uploadResponse = await fetch(uploadURL, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type },
+        headers: {
+          'Content-Type': file.type,
+          'Authorization': `Bearer ${sessionStorage.getItem('admin_token') ?? ''}`,
+        },
         body: file,
       });
       if (!uploadResponse.ok) throw new Error('Încărcarea imaginii a eșuat.');
-      updateField('image', `/api/storage${objectPath}`);
+      updateField('image', `${import.meta.env.VITE_API_URL || ''}/api/storage${objectPath}`);
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'Încărcarea imaginii a eșuat.');
     } finally {
@@ -382,7 +385,7 @@ function InquiryManager() {
   );
 }
 
-export default function Admin() {
+function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [editing, setEditing] = useState<Property | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Property | null>(null);
   const [creating, setCreating] = useState(false);
@@ -421,7 +424,7 @@ export default function Admin() {
           <Link href="/" className="brand">
             <img className="brand-logo" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" />
           </Link>
-          <Link href="/" className="admin-back"><ArrowLeft size={15} /> Vezi website-ul</Link>
+          <div className="admin-header-actions"><Link href="/" className="admin-back"><ArrowLeft size={15} /> Vezi website-ul</Link><button type="button" className="admin-back" onClick={onLogout}>Ieșire</button></div>
         </div>
       </header>
       <main className="container-wide admin-main">
@@ -463,6 +466,50 @@ export default function Admin() {
         </section>
         {deleteTarget && <DeleteConfirmModal label={deleteTarget.title} onCancel={() => setDeleteTarget(null)} onConfirm={() => handleDelete(deleteTarget)} isDeleting={deleteProperty.isPending} />}
       </main>
+    </div>
+  );
+}
+
+export default function Admin() {
+  const [token, setToken] = useState(() => sessionStorage.getItem('admin_token'));
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  if (token) {
+    return <AdminDashboard onLogout={() => { sessionStorage.removeItem('admin_token'); setToken(null); }} />;
+  }
+
+  const login = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (!response.ok) throw new Error('Parolă incorectă.');
+      const data = await response.json() as { token: string };
+      sessionStorage.setItem('admin_token', data.token);
+      setToken(data.token);
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : 'Autentificarea a eșuat.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="admin-shell admin-login-shell">
+      <form className="admin-form admin-login" onSubmit={login}>
+        <img className="brand-logo" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" />
+        <div><div className="eyebrow">Administrare</div><h1 className="display">Autentificare.</h1></div>
+        <label className="admin-field">Parolă<input autoFocus required type="password" className="form-input" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
+        {error && <p className="admin-error">{error}</p>}
+        <button className="button button-primary" disabled={submitting}>{submitting ? 'Se verifică…' : 'Intră în administrare'}</button>
+      </form>
     </div>
   );
 }
