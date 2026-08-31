@@ -18,7 +18,7 @@
 //   export type Post = typeof postsTable.$inferSelect;
 
 import { createInsertSchema } from "drizzle-zod";
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
 
 export const propertiesTable = pgTable("properties", {
@@ -35,6 +35,11 @@ export const propertiesTable = pgTable("properties", {
   price: text("price").notNull(),
   image: text("image").notNull(),
   description: text("description").notNull(),
+  workflowSteps: jsonb("workflow_steps")
+    .$type<Array<{ title: string; description: string }>>()
+    .notNull()
+    .default([]),
+  galleryImages: jsonb("gallery_images").$type<string[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

@@ -11,6 +11,8 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
   Menu,
   MapPin,
@@ -504,9 +506,52 @@ function Home() {
 function PropertyDetail() {
   const [, params] = useRoute('/proprietati/:slug');
   const { data: property, isLoading, isError } = useGetProperty(params?.slug ?? '');
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
+  const [activeGalleryImage, setActiveGalleryImage] = useState(0);
+  const createInquiry = useCreateInquiry();
+
   const openInquiry = () => {
-    window.location.href = `${import.meta.env.BASE_URL}#contact`;
+    setSubmitted(false);
+    setInquiryOpen(true);
   };
+
+  const submitInquiry = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!property) return;
+
+    const form = new FormData(event.currentTarget);
+    createInquiry.mutate({
+      data: {
+        name: String(form.get('name') ?? ''),
+        contact: String(form.get('contact') ?? ''),
+        message: String(form.get('message') ?? ''),
+        location: property.location,
+        propertySlug: property.slug,
+        kind: 'contact',
+      },
+    }, {
+      onSuccess: () => setSubmitted(true),
+    });
+  };
+
+  useEffect(() => {
+    if (!inquiryOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setInquiryOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [inquiryOpen]);
+
+  useEffect(() => {
+    if (!property || property.galleryImages.length < 2) return;
+    const timer = window.setInterval(() => {
+      setActiveGalleryImage((current) => (current + 1) % property.galleryImages.length);
+    }, 5500);
+    return () => window.clearInterval(timer);
+  }, [property]);
 
   if (isLoading) return <div className="site-shell"><main className="container-wide empty-state">Se încarcă proprietatea…</main></div>;
   if (isError || !property) return <NotFound />;
@@ -561,7 +606,92 @@ function PropertyDetail() {
             </div>
           </div>
         </section>
+        {property.galleryImages.length > 0 && (
+          <section className="property-gallery" aria-label={`Galerie foto pentru ${property.title}`}>
+            <div className="container-wide">
+              <div className="property-gallery-frame">
+                {property.galleryImages.map((image, index) => (
+                  <img key={`${image}-${index}`} className={index === activeGalleryImage ? 'active' : ''} src={image} alt={`${property.title} — imaginea ${index + 1}`} />
+                ))}
+                {property.galleryImages.length > 1 && (
+                  <>
+                    <button type="button" className="property-gallery-arrow previous" onClick={() => setActiveGalleryImage((activeGalleryImage - 1 + property.galleryImages.length) % property.galleryImages.length)} aria-label="Imaginea precedentă"><ChevronLeft size={24} /></button>
+                    <button type="button" className="property-gallery-arrow next" onClick={() => setActiveGalleryImage((activeGalleryImage + 1) % property.galleryImages.length)} aria-label="Imaginea următoare"><ChevronRight size={24} /></button>
+                  </>
+                )}
+                <div className="property-gallery-footer">
+                  <span>{String(activeGalleryImage + 1).padStart(2, '0')} / {String(property.galleryImages.length).padStart(2, '0')}</span>
+                  <div className="property-gallery-dots">
+                    {property.galleryImages.map((_, index) => <button key={index} type="button" className={index === activeGalleryImage ? 'active' : ''} onClick={() => setActiveGalleryImage(index)} aria-label={`Vezi imaginea ${index + 1}`} />)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+        {property.workflowSteps.length > 0 && (
+          <section className="section property-workflow" aria-labelledby="property-workflow-title">
+            <div className="container-wide">
+              <div className="property-workflow-heading">
+                <div>
+                  <div className="eyebrow">Proces pas cu pas</div>
+                  <h2 id="property-workflow-title" className="display">Parcursul proprietății.</h2>
+                </div>
+                <span>{String(activeWorkflowStep + 1).padStart(2, '0')} / {String(property.workflowSteps.length).padStart(2, '0')}</span>
+              </div>
+              <div className="property-workflow-grid">
+                <div className="property-workflow-nav" role="tablist" aria-label="Etapele proprietății">
+                  {property.workflowSteps.map((step, index) => (
+                    <button
+                      key={`${step.title}-${index}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeWorkflowStep === index}
+                      aria-controls={`workflow-panel-${index}`}
+                      className={activeWorkflowStep === index ? 'active' : ''}
+                      onClick={() => setActiveWorkflowStep(index)}
+                    >
+                      <span>{String(index + 1).padStart(2, '0')}</span>
+                      {step.title}
+                    </button>
+                  ))}
+                </div>
+                <article id={`workflow-panel-${activeWorkflowStep}`} className="property-workflow-panel" role="tabpanel">
+                  <span className="property-workflow-kicker">Etapa {String(activeWorkflowStep + 1).padStart(2, '0')}</span>
+                  <h3>{property.workflowSteps[activeWorkflowStep]?.title}</h3>
+                  <p>{property.workflowSteps[activeWorkflowStep]?.description}</p>
+                  <div className="property-workflow-progress" aria-hidden="true">
+                    {property.workflowSteps.map((_, index) => <span key={index} className={index <= activeWorkflowStep ? 'active' : ''} />)}
+                  </div>
+                </article>
+              </div>
+            </div>
+          </section>
+        )}
       </main>
+      {inquiryOpen && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setInquiryOpen(false); }}>
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="property-inquiry-title">
+            <div className="modal-head">
+              <div>
+                <div className="eyebrow">Solicită detalii</div>
+                <h2 id="property-inquiry-title" className="display">Despre {property.title}</h2>
+              </div>
+              <button className="close-button" onClick={() => setInquiryOpen(false)} aria-label="Închide formularul" data-testid="button-close-property-inquiry"><X size={22} /></button>
+            </div>
+            {submitted ? (
+              <div className="form-success" data-testid="status-property-inquiry-success"><Check size={22} style={{ color: '#a96b48', marginBottom: 12 }} /><br />Mulțumim. Am primit solicitarea și revenim în cel mai scurt timp cu detalii.</div>
+            ) : (
+              <form className="form-grid" onSubmit={submitInquiry}>
+                <label className="form-label">Nume complet<input className="form-input" required name="name" placeholder="Cum vă putem numi?" data-testid="input-property-inquiry-name" /></label>
+                <label className="form-label">Email / Telefon<input className="form-input" required name="contact" placeholder="Unde vă găsim?" data-testid="input-property-inquiry-contact" /></label>
+                <label className="form-label">Mesaj<textarea className="form-input" required name="message" defaultValue={`Doresc mai multe detalii despre ${property.title}.`} data-testid="input-property-inquiry-message" /></label>
+                <button className="button button-primary" type="submit" disabled={createInquiry.isPending} data-testid="button-submit-property-inquiry">{createInquiry.isPending ? 'Se trimite…' : 'Trimite solicitarea'} <ArrowUpRight size={15} /></button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

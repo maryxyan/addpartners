@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { WorkflowStep } from './workflowStep';
 
 export interface Property {
   id: number;
@@ -20,4 +21,7 @@ export interface Property {
   price: string;
   image: string;
   description: string;
+  workflowSteps: WorkflowStep[];
+  /** @items.minLength 1 */
+  galleryImages: string[];
 }

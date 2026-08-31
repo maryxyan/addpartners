@@ -9,6 +9,13 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface WorkflowStep {
+  /** @minLength 1 */
+  title: string;
+  /** @minLength 1 */
+  description: string;
+}
+
 export interface Property {
   id: number;
   slug: string;
@@ -23,6 +30,9 @@ export interface Property {
   price: string;
   image: string;
   description: string;
+  workflowSteps: WorkflowStep[];
+  /** @items.minLength 1 */
+  galleryImages: string[];
 }
 
 export interface PropertyInput {
@@ -50,6 +60,9 @@ export interface PropertyInput {
   image: string;
   /** @minLength 1 */
   description: string;
+  workflowSteps?: WorkflowStep[];
+  /** @items.minLength 1 */
+  galleryImages?: string[];
 }
 
 export type InquiryStatus = typeof InquiryStatus[keyof typeof InquiryStatus];

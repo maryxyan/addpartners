@@ -55,6 +55,13 @@ function DeleteConfirmModal({
   );
 }
 
+const defaultWorkflowSteps = [
+  { title: 'Analiză inițială', description: 'Evaluăm contextul proprietății, documentația disponibilă și obiectivele pentru a stabili o direcție clară.' },
+  { title: 'Strategie', description: 'Definim poziționarea, scenariile de valorificare și pașii necesari pentru pregătirea oportunității.' },
+  { title: 'Pregătire și promovare', description: 'Pregătim materialele, coordonăm prezentarea și conectăm proprietatea cu partenerii potriviți.' },
+  { title: 'Negociere și finalizare', description: 'Gestionăm dialogul, clarificările și pașii finali până la încheierea procesului.' },
+];
+
 const emptyForm: PropertyInput = {
   slug: '',
   title: '',
@@ -68,9 +75,13 @@ const emptyForm: PropertyInput = {
   price: '',
   image: '',
   description: '',
+  workflowSteps: defaultWorkflowSteps,
+  galleryImages: [],
 };
 
-const fields: Array<{ key: keyof PropertyInput; label: string; placeholder: string }> = [
+type PropertyTextField = Exclude<keyof PropertyInput, 'workflowSteps' | 'galleryImages'>;
+
+const fields: Array<{ key: PropertyTextField; label: string; placeholder: string }> = [
   { key: 'title', label: 'Titlu', placeholder: 'Ex. Coridorul de Nord' },
   { key: 'slug', label: 'Slug URL', placeholder: 'ex. coridorul-de-nord' },
   { key: 'location', label: 'Localizare', placeholder: 'Oraș · zonă' },
@@ -90,7 +101,7 @@ function PropertyForm({
   onCancel: () => void;
   onSaved: () => void;
 }) {
-  const [form, setForm] = useState<PropertyInput>(editing ? { ...editing } : emptyForm);
+  const [form, setForm] = useState<PropertyInput>(editing ? { ...editing, workflowSteps: editing.workflowSteps ?? [], galleryImages: editing.galleryImages ?? [] } : { ...emptyForm, workflowSteps: [...defaultWorkflowSteps], galleryImages: [] });
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -103,15 +114,40 @@ function PropertyForm({
   const isSaving = createProperty.isPending || updateProperty.isPending;
 
   useEffect(() => {
-    setForm(editing ? { ...editing } : { ...emptyForm });
+    setForm(editing ? { ...editing, workflowSteps: editing.workflowSteps ?? [], galleryImages: editing.galleryImages ?? [] } : { ...emptyForm, workflowSteps: [...defaultWorkflowSteps], galleryImages: [] });
     setError('');
     window.requestAnimationFrame(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }, [editing]);
 
-  const updateField = (key: keyof PropertyInput, value: string) => {
+  const updateField = (key: PropertyTextField, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const addWorkflowStep = () => {
+    setForm((current) => ({ ...current, workflowSteps: [...(current.workflowSteps ?? []), { title: '', description: '' }] }));
+  };
+
+  const updateWorkflowStep = (index: number, field: 'title' | 'description', value: string) => {
+    setForm((current) => ({
+      ...current,
+      workflowSteps: (current.workflowSteps ?? []).map((step, stepIndex) => stepIndex === index ? { ...step, [field]: value } : step),
+    }));
+  };
+
+  const moveWorkflowStep = (index: number, direction: -1 | 1) => {
+    setForm((current) => {
+      const workflowSteps = [...(current.workflowSteps ?? [])];
+      const destination = index + direction;
+      if (destination < 0 || destination >= workflowSteps.length) return current;
+      [workflowSteps[index], workflowSteps[destination]] = [workflowSteps[destination], workflowSteps[index]];
+      return { ...current, workflowSteps };
+    });
+  };
+
+  const removeWorkflowStep = (index: number) => {
+    setForm((current) => ({ ...current, workflowSteps: (current.workflowSteps ?? []).filter((_, stepIndex) => stepIndex !== index) }));
   };
 
   const uploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -147,6 +183,55 @@ function PropertyForm({
     } finally {
       setUploading(false);
     }
+  };
+
+  const uploadGalleryImages = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    if (files.length === 0) return;
+    if (files.some((file) => !file.type.startsWith('image/'))) {
+      setError('Selectează doar fișiere imagine.');
+      return;
+    }
+    if (files.some((file) => file.size > 10 * 1024 * 1024)) {
+      setError('Fiecare imagine trebuie să fie mai mică de 10 MB.');
+      return;
+    }
+
+    setError('');
+    setUploading(true);
+    try {
+      const uploadedImages: string[] = [];
+      for (const file of files) {
+        const { uploadURL, objectPath } = await requestUploadUrl.mutateAsync({ data: { name: file.name, size: file.size, contentType: file.type } });
+        const uploadResponse = await fetch(uploadURL, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type, 'Authorization': `Bearer ${sessionStorage.getItem('admin_token') ?? ''}` },
+          body: file,
+        });
+        if (!uploadResponse.ok) throw new Error('Încărcarea unei imagini a eșuat.');
+        uploadedImages.push(`${import.meta.env.VITE_API_URL || ''}/api/storage${objectPath}`);
+      }
+      setForm((current) => ({ ...current, galleryImages: [...(current.galleryImages ?? []), ...uploadedImages] }));
+      event.target.value = '';
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : 'Încărcarea imaginilor a eșuat.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const moveGalleryImage = (index: number, direction: -1 | 1) => {
+    setForm((current) => {
+      const galleryImages = [...(current.galleryImages ?? [])];
+      const destination = index + direction;
+      if (destination < 0 || destination >= galleryImages.length) return current;
+      [galleryImages[index], galleryImages[destination]] = [galleryImages[destination], galleryImages[index]];
+      return { ...current, galleryImages };
+    });
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setForm((current) => ({ ...current, galleryImages: (current.galleryImages ?? []).filter((_, imageIndex) => imageIndex !== index) }));
   };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -197,6 +282,33 @@ function PropertyForm({
           {form.image && <img className="admin-image-preview" src={form.image} alt="Previzualizare proprietate" />}
           <input required className="form-input" value={form.image} placeholder="/api/storage/objects/..." onChange={(event) => updateField('image', event.target.value)} aria-label="Calea imaginii salvate" />
         </label>
+        <section className="admin-field admin-field-wide gallery-editor">
+          <div className="workflow-editor-head">
+            <div>
+              <span>Slideshow proprietate</span>
+              <small>Încarcă mai multe imagini simultan. Ordinea de aici este ordinea din slideshow.</small>
+            </div>
+            <label className="button button-ghost gallery-upload-button">
+              <Plus size={15} /> {uploading ? 'Se încarcă…' : 'Adaugă imagini'}
+              <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={uploadGalleryImages} disabled={uploading} />
+            </label>
+          </div>
+          {(form.galleryImages?.length ?? 0) > 0 ? (
+            <div className="gallery-editor-grid">
+              {(form.galleryImages ?? []).map((image, index) => (
+                <div className="gallery-editor-item" key={`${image}-${index}`}>
+                  <img src={image} alt={`Imagine slideshow ${index + 1}`} />
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <div className="gallery-editor-actions">
+                    <button type="button" className="admin-icon-button" onClick={() => moveGalleryImage(index, -1)} disabled={index === 0} aria-label="Mută imaginea la stânga">←</button>
+                    <button type="button" className="admin-icon-button" onClick={() => moveGalleryImage(index, 1)} disabled={index === (form.galleryImages?.length ?? 0) - 1} aria-label="Mută imaginea la dreapta">→</button>
+                    <button type="button" className="admin-icon-button danger" onClick={() => removeGalleryImage(index)} aria-label="Șterge imaginea"><Trash2 size={15} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : <div className="workflow-editor-empty">Nu există imagini în slideshow.</div>}
+        </section>
         <label className="admin-field">
           Status
           <select required className="form-input" value={form.status} onChange={(event) => updateField('status', event.target.value)}>
@@ -208,6 +320,30 @@ function PropertyForm({
           Descriere
           <textarea required className="form-input" value={form.description} placeholder="Descrierea oportunității" onChange={(event) => updateField('description', event.target.value)} />
         </label>
+        <section className="admin-field admin-field-wide workflow-editor">
+          <div className="workflow-editor-head">
+            <div>
+              <span>Workflow pas cu pas</span>
+              <small>Adaugă, editează și ordonează etapele afișate pe pagina proprietății.</small>
+            </div>
+            <button type="button" className="button button-ghost" onClick={addWorkflowStep}><Plus size={15} /> Adaugă etapă</button>
+          </div>
+          {(form.workflowSteps ?? []).map((step, index) => (
+            <div className="workflow-editor-step" key={index}>
+              <div className="workflow-editor-number">{String(index + 1).padStart(2, '0')}</div>
+              <div className="workflow-editor-fields">
+                <input required className="form-input" value={step.title} placeholder="Titlul etapei" onChange={(event) => updateWorkflowStep(index, 'title', event.target.value)} />
+                <textarea required className="form-input" value={step.description} placeholder="Descrierea etapei" onChange={(event) => updateWorkflowStep(index, 'description', event.target.value)} />
+              </div>
+              <div className="workflow-editor-actions">
+                <button type="button" className="admin-icon-button" onClick={() => moveWorkflowStep(index, -1)} disabled={index === 0} aria-label="Mută etapa în sus">↑</button>
+                <button type="button" className="admin-icon-button" onClick={() => moveWorkflowStep(index, 1)} disabled={index === (form.workflowSteps?.length ?? 0) - 1} aria-label="Mută etapa în jos">↓</button>
+                <button type="button" className="admin-icon-button danger" onClick={() => removeWorkflowStep(index)} aria-label="Șterge etapa"><Trash2 size={15} /></button>
+              </div>
+            </div>
+          ))}
+          {(form.workflowSteps?.length ?? 0) === 0 && <div className="workflow-editor-empty">Nu există etape. Secțiunea nu va fi afișată pe pagina proprietății.</div>}
+        </section>
       </div>
       {error && <p className="admin-error">{error}</p>}
       <div className="admin-actions">

@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { migrateDatabase } from "./lib/migrate";
 
 if (process.env.NODE_ENV === "production") {
   for (const name of ["DATABASE_URL", "FRONTEND_ORIGIN", "ADMIN_PASSWORD", "SESSION_SECRET"] as const) {
@@ -23,6 +24,9 @@ const port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
+
+await migrateDatabase();
+logger.info("Database schema is ready");
 
 app.listen(port, (err) => {
   if (err) {

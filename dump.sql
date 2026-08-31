@@ -81,6 +81,8 @@ CREATE TABLE public.properties (
     price text NOT NULL,
     image text NOT NULL,
     description text NOT NULL,
+    workflow_steps jsonb DEFAULT '[]'::jsonb NOT NULL,
+    gallery_images jsonb DEFAULT '[]'::jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -361,4 +363,3 @@ ALTER TABLE ONLY public.property_statuses
 --
 
 \unrestrict fKO26xyIb3iyC9zJ7LmpePaGA6MoNVLIzQHmyTeJvJ2KrTB1Vj57s9sOuKGkKHT
-

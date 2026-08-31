@@ -27,6 +27,11 @@ export const ListPropertiesQueryParams = zod.object({
   "type": zod.coerce.string().optional()
 })
 
+
+
+
+
+
 export const ListPropertiesResponseItem = zod.object({
   "id": zod.number(),
   "slug": zod.string(),
@@ -40,7 +45,12 @@ export const ListPropertiesResponseItem = zod.object({
   "type": zod.string(),
   "price": zod.string(),
   "image": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "workflowSteps": zod.array(zod.object({
+  "title": zod.string().min(1),
+  "description": zod.string().min(1)
+})),
+  "galleryImages": zod.array(zod.string().min(1))
 })
 export const ListPropertiesResponse = zod.array(ListPropertiesResponseItem)
 
@@ -48,6 +58,9 @@ export const ListPropertiesResponse = zod.array(ListPropertiesResponseItem)
 /**
  * @summary Create a property listing
  */
+
+
+
 
 
 
@@ -74,8 +87,18 @@ export const CreatePropertyBody = zod.object({
   "type": zod.string().min(1),
   "price": zod.string().min(1),
   "image": zod.string().min(1),
+  "description": zod.string().min(1),
+  "workflowSteps": zod.array(zod.object({
+  "title": zod.string().min(1),
   "description": zod.string().min(1)
+})).optional(),
+  "galleryImages": zod.array(zod.string().min(1)).optional()
 })
+
+
+
+
+
 
 export const CreatePropertyResponse = zod.object({
   "id": zod.number(),
@@ -90,7 +113,12 @@ export const CreatePropertyResponse = zod.object({
   "type": zod.string(),
   "price": zod.string(),
   "image": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "workflowSteps": zod.array(zod.object({
+  "title": zod.string().min(1),
+  "description": zod.string().min(1)
+})),
+  "galleryImages": zod.array(zod.string().min(1))
 })
 
 
@@ -100,6 +128,11 @@ export const CreatePropertyResponse = zod.object({
 export const GetPropertyParams = zod.object({
   "slug": zod.coerce.string()
 })
+
+
+
+
+
 
 export const GetPropertyResponse = zod.object({
   "id": zod.number(),
@@ -114,7 +147,12 @@ export const GetPropertyResponse = zod.object({
   "type": zod.string(),
   "price": zod.string(),
   "image": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "workflowSteps": zod.array(zod.object({
+  "title": zod.string().min(1),
+  "description": zod.string().min(1)
+})),
+  "galleryImages": zod.array(zod.string().min(1))
 })
 
 
@@ -124,6 +162,9 @@ export const GetPropertyResponse = zod.object({
 export const UpdatePropertyParams = zod.object({
   "slug": zod.coerce.string()
 })
+
+
+
 
 
 
@@ -151,8 +192,18 @@ export const UpdatePropertyBody = zod.object({
   "type": zod.string().min(1),
   "price": zod.string().min(1),
   "image": zod.string().min(1),
+  "description": zod.string().min(1),
+  "workflowSteps": zod.array(zod.object({
+  "title": zod.string().min(1),
   "description": zod.string().min(1)
+})).optional(),
+  "galleryImages": zod.array(zod.string().min(1)).optional()
 })
+
+
+
+
+
 
 export const UpdatePropertyResponse = zod.object({
   "id": zod.number(),
@@ -167,7 +218,12 @@ export const UpdatePropertyResponse = zod.object({
   "type": zod.string(),
   "price": zod.string(),
   "image": zod.string(),
-  "description": zod.string()
+  "description": zod.string(),
+  "workflowSteps": zod.array(zod.object({
+  "title": zod.string().min(1),
+  "description": zod.string().min(1)
+})),
+  "galleryImages": zod.array(zod.string().min(1))
 })
 
 

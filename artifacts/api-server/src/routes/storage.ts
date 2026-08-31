@@ -83,7 +83,7 @@ router.get('/storage/objects/*path', async (req: Request, res: Response) => {
     ) as { contentType?: string };
     const file = await readFile(path.join(uploadDirectory, objectId));
     res.setHeader('Content-Type', metadata.contentType ?? 'application/octet-stream');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.send(file);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {

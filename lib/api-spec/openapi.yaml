@@ -354,7 +354,7 @@ components:
         - status
     Property:
       type: object
-      required: [id, slug, title, location, size, category, zone, area, status, type, price, image, description]
+      required: [id, slug, title, location, size, category, zone, area, status, type, price, image, description, workflowSteps, galleryImages]
       properties:
         id: { type: number }
         slug: { type: string }
@@ -369,6 +369,12 @@ components:
         price: { type: string }
         image: { type: string }
         description: { type: string }
+        workflowSteps:
+          type: array
+          items: { $ref: '#/components/schemas/WorkflowStep' }
+        galleryImages:
+          type: array
+          items: { type: string, minLength: 1 }
     PropertyInput:
       type: object
       required: [title, slug, location, size, category, zone, area, status, type, price, image, description]
@@ -384,6 +390,18 @@ components:
         type: { type: string, minLength: 1 }
         price: { type: string, minLength: 1 }
         image: { type: string, minLength: 1 }
+        description: { type: string, minLength: 1 }
+        workflowSteps:
+          type: array
+          items: { $ref: '#/components/schemas/WorkflowStep' }
+        galleryImages:
+          type: array
+          items: { type: string, minLength: 1 }
+    WorkflowStep:
+      type: object
+      required: [title, description]
+      properties:
+        title: { type: string, minLength: 1 }
         description: { type: string, minLength: 1 }
     Inquiry:
       type: object

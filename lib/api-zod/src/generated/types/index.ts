@@ -21,3 +21,4 @@ export * from './property';
 export * from './propertyInput';
 export * from './uploadUrlRequest';
 export * from './uploadUrlResponse';
+export * from './workflowStep';

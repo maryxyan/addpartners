@@ -14,6 +14,8 @@ Copy the pooled connection string. Keep `sslmode=require` in the URL.
 
 To migrate the current local sample/data set instead, import `dump.sql` into an
 empty Neon database. Do not run both imports unless duplicate seed data is wanted.
+The API also runs idempotent schema checks at startup, so the workflow and gallery
+columns are added automatically when deploying over an older database.
 
 ## 2. Railway API
 
@@ -22,8 +24,8 @@ Add these variables using `artifacts/api-server/.env.example` as the reference:
 
 - `NODE_ENV=production`
 - `DATABASE_URL` (the Neon pooled connection string)
-- `FRONTEND_ORIGIN=https://YOUR_DOMAIN,https://www.YOUR_DOMAIN`
-- `ADMIN_PASSWORD` (a unique admin password)
+- `FRONTEND_ORIGIN=https://addpartners.ro,https://www.addpartners.ro`
+- `ADMIN_PASSWORD` (a long, unique production password; do not use the local development password)
 - `SESSION_SECRET` (at least 32 random characters)
 - `UPLOAD_DIR=/data/uploads`
 
@@ -39,6 +41,7 @@ From the repository root in PowerShell:
 
 ```powershell
 $env:VITE_API_URL='https://YOUR_RAILWAY_DOMAIN'
+$env:VITE_SITE_URL='https://addpartners.ro'
 $env:BASE_PATH='/'
 $env:PORT='4173'
 pnpm --filter '@workspace/terenuri-imobiliare' run build
@@ -62,6 +65,26 @@ Before launch, verify:
 - homepage, filters and property details work over HTTPS;
 - contact forms create inquiries;
 - `/admin` rejects a wrong password and accepts the configured password;
+- property workflows and slideshow images can be saved from `/admin`;
 - create/edit/delete and image upload work;
 - Railway has a mounted volume and Neon backups are enabled;
 - no `.env`, database dump, or source map is uploaded to `public_html`.
+
+## 5. Release checklist
+
+Before each production release:
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm run typecheck
+pnpm --filter '@workspace/api-server' run build
+$env:VITE_API_URL='https://YOUR_RAILWAY_DOMAIN'
+$env:VITE_SITE_URL='https://addpartners.ro'
+$env:BASE_PATH='/'
+$env:PORT='4173'
+pnpm --filter '@workspace/terenuri-imobiliare' run build
+```
+
+Deploy the API first and wait for `/api/healthz` to return HTTP 200. Then upload
+the new frontend build. Keep the previous `public_html` archive until the smoke
+tests pass so the static site can be rolled back quickly.

@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { WorkflowStep } from './workflowStep';
 
 export interface PropertyInput {
   /** @minLength 1 */
@@ -31,4 +32,7 @@ export interface PropertyInput {
   image: string;
   /** @minLength 1 */
   description: string;
+  workflowSteps?: WorkflowStep[];
+  /** @items.minLength 1 */
+  galleryImages?: string[];
 }
