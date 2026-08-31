@@ -1,0 +1,6 @@
+[phases.install]
+cmds = [
+  "npm install --prefix .pnpm-runtime pnpm@11.24.0",
+  "./.pnpm-runtime/node_modules/.bin/pnpm install --frozen-lockfile"
+]
+
