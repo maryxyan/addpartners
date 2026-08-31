@@ -9,13 +9,25 @@ The production topology is:
 
 ## 1. Neon
 
-Create a Neon project and run `scripts/neon-schema.sql` in the Neon SQL Editor.
-Copy the pooled connection string. Keep `sslmode=require` in the URL.
+Create a Neon project with a production branch, database, and application role.
+Run `scripts/neon-schema.sql` in the Neon SQL Editor. From **Connect**, enable
+connection pooling and copy the pooled URL (its hostname contains `-pooler`).
+Keep `sslmode=require&channel_binding=require` in the URL.
 
 To migrate the current local sample/data set instead, import `dump.sql` into an
 empty Neon database. Do not run both imports unless duplicate seed data is wanted.
 The API also runs idempotent schema checks at startup, so the workflow and gallery
 columns are added automatically when deploying over an older database.
+
+Store the pooled URL only as Railway's `DATABASE_URL`; it is not needed by the
+current GitHub CI workflow. This keeps production data unavailable to pull-request
+jobs. `/api/healthz` executes a database query, so Railway's health check also
+verifies that the deployed API can reach Neon.
+
+Optional later enhancement: connect Neon to the GitHub repository and create an
+isolated Neon branch for each pull request when database integration tests are
+added. That requires a GitHub `NEON_API_KEY` secret and `NEON_PROJECT_ID` variable;
+do not point pull-request tests at the production branch.
 
 ## 2. Railway API
 
@@ -88,3 +100,22 @@ pnpm --filter '@workspace/terenuri-imobiliare' run build
 Deploy the API first and wait for `/api/healthz` to return HTTP 200. Then upload
 the new frontend build. Keep the previous `public_html` archive until the smoke
 tests pass so the static site can be rolled back quickly.
+
+## 6. CI/CD flow
+
+The workflow in `.github/workflows/ci.yml` runs on pull requests and pushes to
+`main`. Protect `main` in GitHub and require the **Verify and build** check.
+
+For the Railway API service:
+
+1. Connect `maryxyan/addpartners` and select the `main` branch.
+2. Set the build command to `pnpm --filter '@workspace/api-server' run build`.
+3. Set the start command to `pnpm --filter '@workspace/api-server' run start`.
+4. Set the health-check path to `/api/healthz` and enable **Wait for CI**.
+5. Add the production variables above and mount a persistent volume at `/data`.
+6. Add `api.addpartners.ro` as the API custom domain, or replace that URL in the
+   frontend CI environment with Railway's generated public domain.
+
+After GitHub CI succeeds on `main`, Railway deploys the API. The same CI run
+publishes the static frontend as a downloadable artifact. Automating the final
+ROMARG upload depends on whether the hosting account supports SSH/SFTP or FTP.
