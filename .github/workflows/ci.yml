@@ -58,3 +58,15 @@ jobs:
           path: artifacts/terenuri-imobiliare/dist/public
           if-no-files-found: error
           retention-days: 14
+
+      - name: Deploy frontend to ROMARG
+        if: github.event_name == 'push'
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: artifacts/terenuri-imobiliare/dist/public/
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          security: strict
