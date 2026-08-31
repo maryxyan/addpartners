@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Check, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, LockKeyhole, Pencil, Plus, Save, ShieldCheck, Trash2, X } from 'lucide-react';
 import {
   type Property,
   type PropertyInput,
@@ -24,6 +24,7 @@ import {
   useUpdateProperty,
 } from '@workspace/api-client-react';
 import { Link } from 'wouter';
+import { Seo } from '@/components/seo';
 
 function DeleteConfirmModal({
   label,
@@ -477,7 +478,7 @@ export default function Admin() {
   const [submitting, setSubmitting] = useState(false);
 
   if (token) {
-    return <AdminDashboard onLogout={() => { sessionStorage.removeItem('admin_token'); setToken(null); }} />;
+    return <><Seo title="Administrare | ADD Partners" description="Panou privat ADD Partners." path="/admin" noIndex /><AdminDashboard onLogout={() => { sessionStorage.removeItem('admin_token'); setToken(null); }} /></>;
   }
 
   const login = async (event: FormEvent<HTMLFormElement>) => {
@@ -503,12 +504,30 @@ export default function Admin() {
 
   return (
     <div className="admin-shell admin-login-shell">
+      <Seo title="Administrare | ADD Partners" description="Panou privat ADD Partners." path="/admin" noIndex />
+      <div className="admin-login-glow" aria-hidden="true" />
       <form className="admin-form admin-login" onSubmit={login}>
-        <img className="brand-logo" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" />
-        <div><div className="eyebrow">Administrare</div><h1 className="display">Autentificare.</h1></div>
-        <label className="admin-field">Parolă<input autoFocus required type="password" className="form-input" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
-        {error && <p className="admin-error">{error}</p>}
-        <button className="button button-primary" disabled={submitting}>{submitting ? 'Se verifică…' : 'Intră în administrare'}</button>
+        <div className="admin-login-brand">
+          <img className="brand-logo" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" />
+        </div>
+        <div className="admin-login-copy">
+          <div className="eyebrow"><ShieldCheck size={13} /> Acces securizat</div>
+          <h1 className="display">Bine ai revenit.</h1>
+          <p>Autentifică-te pentru a administra proprietățile și solicitările clienților.</p>
+        </div>
+        <label className="admin-field admin-login-field">
+          Parolă
+          <span className="admin-login-input-wrap">
+            <LockKeyhole size={17} aria-hidden="true" />
+            <input autoFocus required type="password" className="form-input" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Introdu parola" autoComplete="current-password" />
+          </span>
+        </label>
+        {error && <p className="admin-error" role="alert">{error}</p>}
+        <button className="button button-primary" disabled={submitting}>
+          <span>{submitting ? 'Se verifică…' : 'Intră în administrare'}</span>
+          {!submitting && <ArrowRight size={17} aria-hidden="true" />}
+        </button>
+        <p className="admin-login-footnote"><span /> Panou privat ADD Partners <span /></p>
       </form>
     </div>
   );

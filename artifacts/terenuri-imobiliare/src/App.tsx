@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { Seo } from '@/components/seo';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
@@ -110,6 +111,21 @@ function Home() {
 
   return (
     <div className="site-shell">
+      <Seo
+        title="ADD Partners | Proprietăți și dezvoltări imobiliare"
+        description="ADD Partners identifică, structurează și dezvoltă oportunități imobiliare în București și în România pentru proprietari, investitori și parteneri."
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'RealEstateAgent',
+          name: 'ADD Partners',
+          url: 'https://addpartners.ro/',
+          logo: 'https://addpartners.ro/logo-home.png',
+          email: 'contact@addpartners.ro',
+          telephone: '+40 21 314 00 00',
+          address: { '@type': 'PostalAddress', streetAddress: 'Str. Plantelor 27', addressLocality: 'București', addressCountry: 'RO' },
+          areaServed: 'România',
+        }}
+      />
       <header className="header">
         <div className="container-wide header-inner">
           <a href="#acasa" className="brand" onClick={() => setMobileOpen(false)} data-testid="link-brand">
@@ -497,6 +513,20 @@ function PropertyDetail() {
 
   return (
     <div className="site-shell">
+      <Seo
+        title={`${property.title} | ADD Partners`}
+        description={`${property.description} ${property.location} · ${property.size}`.slice(0, 160)}
+        path={`/proprietati/${property.slug}`}
+        image={property.image}
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'RealEstateListing',
+          name: property.title,
+          description: property.description,
+          url: `https://addpartners.ro/proprietati/${property.slug}`,
+          image: property.image,
+        }}
+      />
       <header className="header detail-header">
         <div className="container-wide header-inner">
           <a href={import.meta.env.BASE_URL} className="brand" data-testid="link-detail-brand">
