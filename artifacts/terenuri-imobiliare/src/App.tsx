@@ -599,7 +599,7 @@ function PropertyDetail() {
           <a href={import.meta.env.BASE_URL} className="brand" data-testid="link-detail-brand">
             <img className="brand-logo" src={`${import.meta.env.BASE_URL}logo-home.png`} alt="ADD Partners" />
           </a>
-          <a className="header-contact" href={`${import.meta.env.BASE_URL}#contact`}>Discutăm o oportunitate <ArrowUpRight size={15} /></a>
+          <button className="header-contact" type="button" onClick={openInquiry}>Discutăm o oportunitate <ArrowUpRight size={15} /></button>
         </div>
       </header>
       <main>

@@ -510,7 +510,7 @@ body { background: #eee9df; color: #1e3935; }
 .nav-links a::after { content: ''; position: absolute; right: 50%; bottom: 22px; left: 50%; height: 1px; background: linear-gradient(90deg, #b77a2c, #f1d28d); transition: right .25s ease, left .25s ease; }
 .nav-links a:hover, .header-contact:hover { color: #f1d28d; }
 .nav-links a:hover::after { right: 0; left: 0; }
-.header-contact { display: flex; min-height: 36px; padding: 0 13px; align-items: center; gap: 9px; border: 1px solid rgba(218,176,92,.65); color: #e6b95c; }
+.header-contact { display: flex; min-height: 36px; padding: 0 13px; align-items: center; gap: 9px; border: 1px solid rgba(218,176,92,.65); background: transparent; color: #e6b95c; cursor: pointer; }
 .header-contact:hover { border-color: #f1d28d; background: rgba(218,176,92,.08); }
 .menu-toggle { display: none; border: 0; background: transparent; color: #f5f0e8; }
 .hero { position: relative; min-height: 810px; padding: 205px 0 72px; color: #f5f0e8; background: #1e3935; }

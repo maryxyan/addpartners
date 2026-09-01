@@ -168,7 +168,8 @@ function PropertyForm({
       const { uploadURL, objectPath } = await requestUploadUrl.mutateAsync({
         data: { name: file.name, size: file.size, contentType: file.type },
       });
-      const uploadResponse = await fetch(uploadURL, {
+      const uploadEndpoint = new URL(uploadURL, import.meta.env.VITE_API_URL || window.location.origin);
+      const uploadResponse = await fetch(uploadEndpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': file.type,
@@ -203,7 +204,8 @@ function PropertyForm({
       const uploadedImages: string[] = [];
       for (const file of files) {
         const { uploadURL, objectPath } = await requestUploadUrl.mutateAsync({ data: { name: file.name, size: file.size, contentType: file.type } });
-        const uploadResponse = await fetch(uploadURL, {
+        const uploadEndpoint = new URL(uploadURL, import.meta.env.VITE_API_URL || window.location.origin);
+        const uploadResponse = await fetch(uploadEndpoint, {
           method: 'PUT',
           headers: { 'Content-Type': file.type, 'Authorization': `Bearer ${sessionStorage.getItem('admin_token') ?? ''}` },
           body: file,
