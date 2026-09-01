@@ -12,7 +12,9 @@ The production topology is:
 Create a Neon project with a production branch, database, and application role.
 Run `scripts/neon-schema.sql` in the Neon SQL Editor. From **Connect**, enable
 connection pooling and copy the pooled URL (its hostname contains `-pooler`).
-Keep `sslmode=require&channel_binding=require` in the URL.
+Keep `sslmode=verify-full&channel_binding=require` in the URL. This preserves
+strict server-certificate verification and avoids the `pg-connection-string`
+compatibility warning.
 
 To migrate the current local sample/data set instead, import `dump.sql` into an
 empty Neon database. Do not run both imports unless duplicate seed data is wanted.

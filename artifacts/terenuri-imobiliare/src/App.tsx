@@ -1,11 +1,10 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Seo } from '@/components/seo';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
-import Admin from '@/pages/admin';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -32,6 +31,7 @@ import {
 } from '@workspace/api-client-react';
 
 const queryClient = new QueryClient();
+const Admin = lazy(() => import('@/pages/admin'));
 
 function Home() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -282,7 +282,7 @@ function Home() {
               <div className="property-grid">
                 {visibleProperties.map((property) => (
                   <a className="property-card" key={property.id} href={`${import.meta.env.BASE_URL}proprietati/${property.slug}`} data-testid={`card-property-${property.id}`}>
-                    <div className="property-image" style={{ backgroundImage: `url(${property.image})` }} />
+                    <img className="property-image" src={property.image} alt="" loading="lazy" decoding="async" />
                     <div className="property-arrow"><ArrowUpRight size={18} /></div>
                     <div className="property-content">
                       <span className="property-type">{property.category}</span>
@@ -432,7 +432,7 @@ function Home() {
                   aria-label={`Vezi proiectul ${featuredProjects[0].title}`}
                   data-testid={`card-project-${featuredProjects[0].id}`}
                 >
-                  <div className="project-card-image" style={{ backgroundImage: `url(${featuredProjects[0].image})` }} />
+                  <img className="project-card-image" src={featuredProjects[0].image} alt="" loading="lazy" decoding="async" />
                   <div className="project-card-copy">
                     <div className="mono">{featuredProjects[0].status} · {featuredProjects[0].zone}</div>
                     <h3>{featuredProjects[0].title}</h3>
@@ -448,7 +448,7 @@ function Home() {
                       data-testid={`card-project-${project.id}`}
                       key={project.id}
                     >
-                      <div className="project-card-image" style={{ backgroundImage: `url(${project.image})` }} />
+                      <img className="project-card-image" src={project.image} alt="" loading="lazy" decoding="async" />
                       <div className="project-card-copy">
                         <div className="mono">{project.status} · {project.zone}</div>
                         <h3>{project.title}</h3>
@@ -732,12 +732,14 @@ function Router() {
     // Keep a shared shell (sidebar, navbar) outside the boundary so it
     // survives a page crash.
     <RoutedErrorBoundary>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/proprietati/:slug" component={PropertyDetail} />
-        <Route path="/admin" component={Admin} />
-        <Route component={NotFound} />
-      </Switch>
+      <Suspense fallback={<div className="site-shell"><main className="container-wide empty-state">Se încarcă…</main></div>}>
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/proprietati/:slug" component={PropertyDetail} />
+          <Route path="/admin" component={Admin} />
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
     </RoutedErrorBoundary>
   );
 }
