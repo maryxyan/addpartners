@@ -791,7 +791,8 @@ body { background: #eee9df; color: #1e3935; }
 .development-card svg { position: absolute; right: 20px; bottom: 23px; color: #a96b48; }
 .projects-section { background: #ece4d6; }
 .project-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; }
-.project-card { position: relative; min-height: 520px; overflow: hidden; color: #f5f0e8; }
+.project-card { position: relative; display: block; min-height: 520px; overflow: hidden; color: #f5f0e8; text-decoration: none; }
+.project-card:focus-visible { outline: 2px solid #e6b95c; outline-offset: 4px; }
 .project-card.small { min-height: 250px; }
 .project-stack { display: grid; gap: 18px; }
 .project-card-image { position: absolute; inset: 0; background-position: center; background-size: cover; transition: transform .7s ease; }

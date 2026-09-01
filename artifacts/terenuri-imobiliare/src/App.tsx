@@ -64,6 +64,7 @@ function Home() {
   // Without an API proxy Vite can return its HTML fallback for this request.
   // Do not let an unexpected response shape crash the entire page.
   const properties = Array.isArray(propertiesResponse) ? propertiesResponse : [];
+  const featuredProjects = properties.slice(0, 3);
 
   const filteredProperties =
     filter === 'Toate'
@@ -414,22 +415,43 @@ function Home() {
               </div>
               <p>O selecție de proiecte finalizate, în lucru și oportunități pe care le pregătim cu atenție pentru următorul partener.</p>
             </div>
-            <div className="project-grid">
-              <article className="project-card" data-testid="card-project-nord">
-                <div className="project-card-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1300&q=85')" }} />
-                <div className="project-card-copy"><div className="mono">În dezvoltare · București</div><h3>Nord Logistics Campus</h3><p>Clădiri industriale · 24.000 mp</p></div>
-              </article>
-              <div className="project-stack">
-                <article className="project-card small" data-testid="card-project-verde">
-                  <div className="project-card-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=85')" }} />
-                  <div className="project-card-copy"><div className="mono">Finalizat · Brașov</div><h3>Valea Verde</h3><p>Rezidențial · 46 unități</p></div>
-                </article>
-                <article className="project-card small" data-testid="card-project-atelier">
-                  <div className="project-card-image" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85')" }} />
-                  <div className="project-card-copy"><div className="mono">Oportunitate · Cluj</div><h3>Atelierul 42</h3><p>Conversie comercială · 3.240 mp</p></div>
-                </article>
+            {featuredProjects.length > 0 ? (
+              <div className="project-grid">
+                <a
+                  className="project-card"
+                  href={`${import.meta.env.BASE_URL}proprietati/${featuredProjects[0].slug}`}
+                  aria-label={`Vezi proiectul ${featuredProjects[0].title}`}
+                  data-testid={`card-project-${featuredProjects[0].id}`}
+                >
+                  <div className="project-card-image" style={{ backgroundImage: `url(${featuredProjects[0].image})` }} />
+                  <div className="project-card-copy">
+                    <div className="mono">{featuredProjects[0].status} · {featuredProjects[0].zone}</div>
+                    <h3>{featuredProjects[0].title}</h3>
+                    <p>{featuredProjects[0].type} · {featuredProjects[0].size}</p>
+                  </div>
+                </a>
+                <div className="project-stack">
+                  {featuredProjects.slice(1).map((project) => (
+                    <a
+                      className="project-card small"
+                      href={`${import.meta.env.BASE_URL}proprietati/${project.slug}`}
+                      aria-label={`Vezi proiectul ${project.title}`}
+                      data-testid={`card-project-${project.id}`}
+                      key={project.id}
+                    >
+                      <div className="project-card-image" style={{ backgroundImage: `url(${project.image})` }} />
+                      <div className="project-card-copy">
+                        <div className="mono">{project.status} · {project.zone}</div>
+                        <h3>{project.title}</h3>
+                        <p>{project.type} · {project.size}</p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : !propertiesLoading && (
+              <div className="empty-state">Proiectele vor apărea aici după ce sunt adăugate din administrare.</div>
+            )}
           </div>
         </section>
 
