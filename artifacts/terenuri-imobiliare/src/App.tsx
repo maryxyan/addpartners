@@ -167,6 +167,15 @@ function Home() {
 
       <main>
         <section className="hero" id="acasa">
+          <img
+            className="hero-background"
+            src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&fm=webp&w=1440&q=78"
+            srcSet="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&fm=webp&w=640&q=74 640w, https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&fm=webp&w=960&q=76 960w, https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&fm=webp&w=1440&q=78 1440w, https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&fm=webp&w=2200&q=80 2200w"
+            sizes="100vw"
+            alt=""
+            aria-hidden="true"
+            fetchPriority="high"
+          />
           <div className="container-wide">
             <div className="hero-copy">
               <div className="eyebrow reveal">ADD Partners · București / România</div>

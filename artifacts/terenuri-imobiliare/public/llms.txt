@@ -1,0 +1,26 @@
+# ADD Partners
+
+> ADD Partners is a Romanian real-estate company that identifies, structures, and develops property opportunities for owners, investors, and partners.
+
+The website is primarily in Romanian and presents current properties, land-acquisition services, real-estate development services, projects, and partnership opportunities.
+
+## Main pages and sections
+
+- [ADD Partners homepage](https://addpartners.ro/)
+- [Current properties](https://addpartners.ro/#proprietati)
+- [Services](https://addpartners.ro/#servicii)
+- [Land acquisitions](https://addpartners.ro/#achizitii)
+- [Real-estate developments](https://addpartners.ro/#dezvoltari)
+- [Projects](https://addpartners.ro/#proiecte)
+- [Investments and partnerships](https://addpartners.ro/#parteneriate)
+- [About ADD Partners](https://addpartners.ro/#despre-noi)
+- [Contact](https://addpartners.ro/#contact)
+
+## Discovery
+
+- [XML sitemap](https://addpartners.ro/sitemap.xml)
+- [Crawler rules](https://addpartners.ro/robots.txt)
+
+## Contact
+
+- [Email ADD Partners](mailto:contact@addpartners.ro)
